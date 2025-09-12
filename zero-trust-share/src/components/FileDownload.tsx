@@ -101,8 +101,23 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
         try {
           await fetch(`/api/file/${fileId}`, { method: 'DELETE' });
           setDownloadProgress(100);
+          
+          // Show burn animation
           setTimeout(() => {
             setError('🔥 File has been deleted after download (burn after read)');
+            // Add burn effect to the UI
+            const burnEffect = document.createElement('div');
+            burnEffect.className = 'fixed inset-0 pointer-events-none z-50';
+            burnEffect.innerHTML = `
+              <div class="absolute inset-0 bg-gradient-to-r from-red-500/20 via-orange-500/20 to-yellow-500/20 animate-pulse"></div>
+              <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl animate-bounce">🔥</div>
+            `;
+            document.body.appendChild(burnEffect);
+            
+            // Remove burn effect after animation
+            setTimeout(() => {
+              document.body.removeChild(burnEffect);
+            }, 3000);
           }, 1000);
         } catch (error) {
           console.error('Failed to delete file after download:', error);
@@ -242,7 +257,7 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
           <div>
             <h4 className="text-sm font-medium text-blue-400 mb-1">Decryption Process</h4>
             <p className="text-sm text-gray-300">
-              Your file is decrypted entirely in your browser using the password. The decryption key never leaves your device.
+              Your file is decrypted entirely in your browser. The decryption key never leaves your device.
             </p>
           </div>
         </div>

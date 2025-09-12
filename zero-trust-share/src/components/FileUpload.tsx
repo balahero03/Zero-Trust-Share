@@ -232,7 +232,7 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
           <div>
             <h4 className="text-sm font-medium text-blue-400 mb-1">Security Notice</h4>
             <p className="text-sm text-gray-300">
-              Your file will be encrypted with AES-256-GCM using your password. The encryption key is derived from your password and never leaves your browser.
+              Your file will be encrypted using your password. The encryption key is derived from your password and never leaves your browser.
             </p>
           </div>
         </div>

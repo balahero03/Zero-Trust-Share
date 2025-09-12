@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { QRCode } from './QRCode';
 
 interface FileShareProps {
   file: {
@@ -16,6 +17,7 @@ interface FileShareProps {
 export function FileShare({ file, onUploadAnother }: FileShareProps) {
   const [copied, setCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   const copyToClipboard = async () => {
     try {
@@ -107,9 +109,18 @@ export function FileShare({ file, onUploadAnother }: FileShareProps) {
 
       {/* Share Link */}
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-white">
-          Shareable Link
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-white">
+            Shareable Link
+          </label>
+          <button
+            onClick={() => setShowQR(!showQR)}
+            className="px-3 py-1 text-xs font-medium text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-colors"
+          >
+            {showQR ? 'Hide QR' : 'Show QR'}
+          </button>
+        </div>
+        
         <div className="flex items-center space-x-2">
           <input
             type="text"
@@ -142,6 +153,13 @@ export function FileShare({ file, onUploadAnother }: FileShareProps) {
             )}
           </button>
         </div>
+
+        {/* QR Code */}
+        {showQR && (
+          <div className="flex justify-center pt-4">
+            <QRCode url={file.shareUrl} size={150} />
+          </div>
+        )}
       </div>
 
       {/* Instructions */}
