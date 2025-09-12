@@ -18,7 +18,6 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [password, setPassword] = useState('');
   const [burnAfterRead, setBurnAfterRead] = useState(false);
   const [expiryHours, setExpiryHours] = useState(24);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,18 +50,13 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
   }, []);
 
   const handleFileSelect = useCallback(async (file: File) => {
-    if (!password.trim()) {
-      alert('Please enter a password to protect your file');
-      return;
-    }
-
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
       // Step 1: Encrypt the file
       setUploadProgress(10);
-      const { encryptedData, iv, salt } = await encryptFile(file, password);
+      const { encryptedData, iv, key } = await encryptFile(file);
       
       // Step 2: Upload to storage
       setUploadProgress(30);
@@ -70,15 +64,13 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
         originalName: file.name,
         originalSize: file.size,
         burnAfterRead,
-        expiryHours,
-        iv: Array.from(iv),
-        salt: Array.from(salt)
-      });
+        expiryHours
+      }, iv);
 
       setUploadProgress(90);
 
-      // Step 3: Generate share URL
-      const shareUrl = `${window.location.origin}/file/${fileId}#password=${encodeURIComponent(password)}`;
+      // Step 3: Generate share URL with key
+      const shareUrl = `${window.location.origin}/file/${fileId}#key=${encodeURIComponent(key)}`;
       
       setUploadProgress(100);
 
@@ -88,7 +80,7 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
         name: file.name,
         size: file.size,
         shareUrl,
-        password
+        password: key // Using key as "password" for compatibility
       });
 
     } catch (error) {
@@ -98,7 +90,7 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
       setIsUploading(false);
       setUploadProgress(0);
     }
-  }, [password, burnAfterRead, expiryHours, onFileUploaded]);
+  }, [burnAfterRead, expiryHours, onFileUploaded]);
 
   const openFileDialog = useCallback(() => {
     fileInputRef.current?.click();
@@ -108,26 +100,22 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-2xl font-bold text-white mb-2">Upload Your File</h3>
-        <p className="text-gray-300">Choose a file to share securely with password protection</p>
+        <p className="text-gray-300">Choose a file to share securely with automatic encryption</p>
       </div>
 
-      {/* Password Input */}
-      <div className="space-y-2">
-        <label htmlFor="password" className="block text-sm font-medium text-white">
-          Protection Password *
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter a password to protect your file"
-          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          disabled={isUploading}
-        />
-        <p className="text-xs text-gray-400">
-          Share this password with the recipient through a secure channel (not through this link)
-        </p>
+      {/* Encryption Notice */}
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h4 className="text-sm font-medium text-blue-400 mb-1">Automatic Encryption</h4>
+            <p className="text-sm text-gray-300">
+              Your file will be automatically encrypted with a unique key. The encryption key will be included in the shareable link.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Security Options */}
@@ -232,7 +220,7 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
           <div>
             <h4 className="text-sm font-medium text-blue-400 mb-1">Security Notice</h4>
             <p className="text-sm text-gray-300">
-              Your file will be encrypted using your password. The encryption key is derived from your password and never leaves your browser.
+              Your file will be encrypted with a unique key generated in your browser. The encryption key is never sent to our servers.
             </p>
           </div>
         </div>

@@ -7,12 +7,12 @@ import { downloadFile } from '@/lib/storage';
 interface FileDownloadProps {
   onBack: () => void;
   initialFileId?: string;
-  initialPassword?: string;
+  initialKey?: string;
 }
 
-export function FileDownload({ onBack, initialFileId, initialPassword }: FileDownloadProps) {
+export function FileDownload({ onBack, initialFileId, initialKey }: FileDownloadProps) {
   const [fileId, setFileId] = useState(initialFileId || '');
-  const [password, setPassword] = useState(initialPassword || '');
+  const [key, setKey] = useState(initialKey || '');
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState('');
@@ -21,9 +21,9 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
     size: number;
   } | null>(null);
 
-  // Extract file ID and password from URL if present (fallback)
+  // Extract file ID and key from URL if present (fallback)
   useEffect(() => {
-    if (typeof window !== 'undefined' && !initialFileId && !initialPassword) {
+    if (typeof window !== 'undefined' && !initialFileId && !initialKey) {
       const urlParams = new URLSearchParams(window.location.search);
       const hash = window.location.hash;
       
@@ -33,13 +33,13 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
         setFileId(pathParts[2]);
       }
       
-      // Extract password from hash
-      if (hash.startsWith('#password=')) {
-        const extractedPassword = decodeURIComponent(hash.substring(10));
-        setPassword(extractedPassword);
+      // Extract key from hash
+      if (hash.startsWith('#key=')) {
+        const extractedKey = decodeURIComponent(hash.substring(5));
+        setKey(extractedKey);
       }
     }
-  }, [initialFileId, initialPassword]);
+  }, [initialFileId, initialKey]);
 
   const handleDownload = async () => {
     if (!fileId.trim()) {
@@ -47,8 +47,8 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
       return;
     }
 
-    if (!password.trim()) {
-      setError('Please enter the password');
+    if (!key.trim()) {
+      setError('Please enter the decryption key');
       return;
     }
 
@@ -77,9 +77,8 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
       setDownloadProgress(70);
       const decryptedBlob = await decryptFile(
         encryptedData,
-        password,
-        new Uint8Array(metadata.iv),
-        new Uint8Array(metadata.salt)
+        key,
+        new Uint8Array(metadata.iv)
       );
 
       // Step 4: Download file
@@ -126,7 +125,7 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
 
     } catch (error: any) {
       console.error('Download failed:', error);
-      setError(error.message || 'Download failed. Please check your file ID and password.');
+      setError(error.message || 'Download failed. Please check your file ID and decryption key.');
     } finally {
       setIsDownloading(false);
       setDownloadProgress(0);
@@ -164,18 +163,18 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
         />
       </div>
 
-      {/* Password Input */}
+      {/* Decryption Key Input */}
       <div className="space-y-2">
-        <label htmlFor="password" className="block text-sm font-medium text-white">
-          Protection Password
+        <label htmlFor="key" className="block text-sm font-medium text-white">
+          Decryption Key
         </label>
         <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter the password shared by the sender"
-          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          id="key"
+          type="text"
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+          placeholder="Enter the decryption key from the shareable link"
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
           disabled={isDownloading}
         />
       </div>
@@ -228,7 +227,7 @@ export function FileDownload({ onBack, initialFileId, initialPassword }: FileDow
       {/* Download Button */}
       <button
         onClick={handleDownload}
-        disabled={isDownloading || !fileId.trim() || !password.trim()}
+        disabled={isDownloading || !fileId.trim() || !key.trim()}
         className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
       >
         {isDownloading ? (

@@ -7,7 +7,7 @@ import { FileDownload } from '@/components/FileDownload';
 export default function FileDownloadPage() {
   const params = useParams();
   const [fileId, setFileId] = useState('');
-  const [password, setPassword] = useState('');
+  const [key, setKey] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -15,11 +15,11 @@ export default function FileDownloadPage() {
       const id = params.fileId as string;
       setFileId(id);
 
-      // Extract password from URL hash
+      // Extract key from URL hash
       const hash = window.location.hash;
-      if (hash.startsWith('#password=')) {
-        const extractedPassword = decodeURIComponent(hash.substring(10));
-        setPassword(extractedPassword);
+      if (hash.startsWith('#key=')) {
+        const extractedKey = decodeURIComponent(hash.substring(5));
+        setKey(extractedKey);
       }
     }
   }, [params.fileId]);
@@ -65,7 +65,7 @@ export default function FileDownloadPage() {
             </span>
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Enter the password to decrypt and download your file.
+            Your file is ready to download. The decryption key has been extracted from the link.
             <br />
             <span className="text-purple-400 font-semibold">Your data is safe with us.</span>
           </p>
@@ -76,14 +76,14 @@ export default function FileDownloadPage() {
           <FileDownload 
             onBack={() => window.location.href = '/'}
             initialFileId={fileId}
-            initialPassword={password}
+            initialKey={key}
           />
         </div>
 
         {/* Security Notice */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-400">
-            🔒 Your file is decrypted entirely in your browser. The password never leaves your device.
+            🔒 Your file is decrypted entirely in your browser. The decryption key never leaves your device.
             <br />
             We cannot access your files even if we wanted to.
           </p>

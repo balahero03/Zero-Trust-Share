@@ -59,7 +59,7 @@ export default function DownloadPage() {
             </span>
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Enter the file ID and password to decrypt and download your file.
+            Enter the file ID and decryption key to decrypt and download your file.
             <br />
             <span className="text-purple-400 font-semibold">Your data is safe with us.</span>
           </p>
@@ -92,13 +92,13 @@ export default function DownloadPage() {
                 <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-white text-xs font-bold">2</span>
                 </div>
-                <p>Get the password from the sender (shared separately)</p>
+                <p>Get the decryption key from the shareable link</p>
               </div>
               <div className="flex items-start space-x-3">
                 <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-white text-xs font-bold">3</span>
                 </div>
-                <p>Enter both the file ID and password above</p>
+                <p>Enter both the file ID and decryption key above</p>
               </div>
               <div className="flex items-start space-x-3">
                 <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">

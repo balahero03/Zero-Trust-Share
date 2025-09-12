@@ -11,7 +11,6 @@ export interface FileMetadata {
   burnAfterRead: boolean;
   expiryHours: number;
   iv: number[];
-  salt: number[];
   uploadedAt: string;
   expiresAt: string;
 }
@@ -21,7 +20,8 @@ export interface FileMetadata {
  */
 export async function uploadFile(
   encryptedData: ArrayBuffer,
-  metadata: Omit<FileMetadata, 'uploadedAt' | 'expiresAt'>
+  metadata: Omit<FileMetadata, 'uploadedAt' | 'expiresAt'>,
+  iv: Uint8Array
 ): Promise<string> {
   try {
     const fileId = generateFileId();
@@ -30,6 +30,7 @@ export async function uploadFile(
 
     const fullMetadata: FileMetadata = {
       ...metadata,
+      iv: Array.from(iv),
       uploadedAt: now.toISOString(),
       expiresAt: expiresAt.toISOString()
     };
