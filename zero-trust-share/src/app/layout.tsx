@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { Layout } from "@/components/Layout";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "ZeroVault - Zero-Trust File Sharing",
-  description: "Secure file sharing with client-side encryption. Even we can't see your files.",
+  title: "AetherVault - Zero-Trust File Sharing",
+  description: "The only file-sharing platform that combines a user-managed, zero-knowledge architecture with true out-of-band, two-factor authentication for every file you share.",
 };
 
 export default function RootLayout({
@@ -24,10 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${inter.variable} font-sans antialiased bg-background text-text-primary`}>
+        <Layout>
+          {children}
+        </Layout>
       </body>
     </html>
   );
