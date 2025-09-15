@@ -5,6 +5,8 @@
 
 import { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } from '@azure/storage-blob'
 
+require('dotenv').config({ path: '.env.local' });
+
 // Initialize Azure Blob Storage client
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
 const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY!
