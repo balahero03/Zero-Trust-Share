@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileUploadProcess } from '@/components/FileUploadProcess';
 import { supabase } from '@/lib/supabase';
+import { handleAuthError } from '@/lib/auth-utils';
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -15,10 +16,16 @@ export default function Home() {
     // Check initial auth state
     const checkAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          await handleAuthError(error);
+          setIsAuthenticated(false);
+        } else {
+          setIsAuthenticated(!!session);
+        }
       } catch (error) {
         console.error('Auth check error:', error);
+        await handleAuthError(error);
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
@@ -37,8 +44,12 @@ export default function Home() {
     }
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        setIsAuthenticated(!!session);
+      } else if (event === 'SIGNED_IN') {
+        setIsAuthenticated(true);
+      }
     });
 
     return () => subscription.unsubscribe();

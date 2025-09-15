@@ -144,11 +144,7 @@ export default function UpdatePasswordPage() {
               <h2 className="text-2xl font-bold text-text-primary mb-4">Password Updated!</h2>
               
               <p className="text-text-secondary mb-6">
-<<<<<<< HEAD
                 Your password has been successfully updated! For security reasons, please sign in again with your new password.
-=======
-                Your password has been successfully updated! You&apos;re now signed in and ready to continue.
->>>>>>> 2db990ee7db075780762571dbde6a4fd329fc525
               </p>
 
               <div className="bg-success/10 border border-success/20 rounded-lg p-4 mb-6">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getUserFiles, revokeFile } from '@/lib/storage';
 import { deriveMasterKey } from '@/lib/encryption';
+import { initializeMasterKey, getMasterKeySalt } from '@/lib/auth-utils';
 
 interface SharedFile {
   id: string;
@@ -34,39 +35,36 @@ export function DashboardView({}: DashboardViewProps) {
         setIsLoading(true);
         const files = await getUserFiles();
         
-        // Decrypt file names using master key
-        const masterKeySalt = sessionStorage.getItem('masterKeySalt');
-        if (masterKeySalt) {
-          // For demo purposes, we'll use a placeholder password
-          // In production, you'd store the master key more securely
-          await deriveMasterKey('demo-password', new Uint8Array(JSON.parse(masterKeySalt)));
-          
-          const decryptedFiles = await Promise.all(
-            files.map(async (file) => {
-              try {
-                // In a real implementation, you'd decrypt the filename here
-                // For now, we'll use a placeholder
-                return {
-                  ...file,
-                  decryptedName: `File-${file.id.slice(0, 8)}`
-                };
-              } catch (error) {
-                console.error('Failed to decrypt filename:', error);
-                return {
-                  ...file,
-                  decryptedName: `Encrypted File ${file.id.slice(0, 8)}`
-                };
-              }
-            })
-          );
-          
-          setSharedFiles(decryptedFiles);
-        } else {
-          setSharedFiles(files.map(file => ({
-            ...file,
-            decryptedName: `File-${file.id.slice(0, 8)}`
-          })));
-        }
+        // Initialize master key if not already done
+        await initializeMasterKey();
+        
+        // Get master key salt for decryption
+        const masterKeySalt = getMasterKeySalt();
+        
+        // For demo purposes, we'll use a placeholder password
+        // In production, you'd store the master key more securely
+        await deriveMasterKey('demo-password', masterKeySalt);
+        
+        const decryptedFiles = await Promise.all(
+          files.map(async (file) => {
+            try {
+              // In a real implementation, you'd decrypt the filename here
+              // For now, we'll use a placeholder
+              return {
+                ...file,
+                decryptedName: `File-${file.id.slice(0, 8)}`
+              };
+            } catch (error) {
+              console.error('Failed to decrypt filename:', error);
+              return {
+                ...file,
+                decryptedName: `Encrypted File ${file.id.slice(0, 8)}`
+              };
+            }
+          })
+        );
+        
+        setSharedFiles(decryptedFiles);
       } catch (error) {
         console.error('Failed to load files:', error);
         setError('Failed to load your files');

@@ -6,6 +6,7 @@ import { ShareResult } from './ShareResult';
 import { supabase } from '@/lib/supabase';
 import { encryptFile, encryptMetadata, deriveMasterKey } from '@/lib/encryption';
 import { prepareFileUpload, uploadFileData } from '@/lib/storage';
+import { initializeMasterKey, getMasterKeySalt } from '@/lib/auth-utils';
 
 type UploadState = 'idle' | 'auth-gated' | 'config' | 'processing' | 'success';
 
@@ -49,6 +50,8 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
           setState('auth-gated');
           setShowAuthModal(true);
         } else {
+          // Initialize master key if not already done
+          await initializeMasterKey();
           setState('config');
         }
       } catch (error) {
@@ -119,14 +122,11 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
       );
 
       // Get master key from session storage
-      const masterKeySalt = sessionStorage.getItem('masterKeySalt');
-      if (!masterKeySalt) {
-        throw new Error('Session expired. Please log in again.');
-      }
+      const masterKeySalt = getMasterKeySalt();
 
       // For demo purposes, we'll use a placeholder password
       // In production, you'd store the master key more securely
-      const { masterKey } = await deriveMasterKey('demo-password', new Uint8Array(JSON.parse(masterKeySalt)));
+      const { masterKey } = await deriveMasterKey('demo-password', masterKeySalt);
       
       const { encryptedData: encryptedFileName } = await encryptMetadata(selectedFile.name, masterKey);
 

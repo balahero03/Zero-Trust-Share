@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { generateDownloadUrl } from '@/lib/aws'
+import { generateDownloadUrl } from '@/lib/azure'
 
 export async function GET(
   request: NextRequest,

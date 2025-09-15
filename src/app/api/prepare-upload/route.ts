@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { generateUploadUrl } from '@/lib/aws'
+import { generateUploadUrl } from '@/lib/azure'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: NextRequest) {
@@ -38,12 +38,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Generate unique S3 key
+    // Generate unique blob name
     const fileId = uuidv4()
-    const s3Key = `${user.id}/${fileId}`
+    const blobName = `${user.id}/${fileId}`
 
     // Generate pre-signed upload URL (expires in 5 minutes)
-    const uploadUrl = await generateUploadUrl(s3Key, 300)
+    const uploadUrl = await generateUploadUrl(blobName, 300)
 
     // Calculate expiry time
     const expiresAt = expiryHours > 0 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       .from('shared_files')
       .insert({
         owner_id: user.id,
-        s3_key: s3Key,
+        s3_key: blobName, // Using s3_key field for blob name
         encrypted_file_name: encryptedFileName,
         file_size: fileSize,
         file_salt: fileSalt,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       uploadUrl,
       fileId: fileRecord.id,
-      s3Key
+      s3Key: blobName // Keep s3Key for compatibility
     })
 
   } catch (error) {

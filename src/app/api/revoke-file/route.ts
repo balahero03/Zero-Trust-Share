@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { deleteFileFromS3 } from '@/lib/aws'
+import { deleteFileFromBlob } from '@/lib/azure'
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -48,11 +48,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     try {
-      // Delete from S3
-      await deleteFileFromS3(fileRecord.s3_key)
-    } catch (s3Error) {
-      console.error('S3 delete error:', s3Error)
-      // Continue with database deletion even if S3 deletion fails
+      // Delete from Azure Blob Storage
+      await deleteFileFromBlob(fileRecord.s3_key)
+    } catch (blobError) {
+      console.error('Blob delete error:', blobError)
+      // Continue with database deletion even if blob deletion fails
     }
 
     // Delete from database

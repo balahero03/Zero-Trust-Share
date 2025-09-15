@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { deriveMasterKey } from '@/lib/encryption';
+import { initializeMasterKey } from '@/lib/auth-utils';
 import { SuccessModal } from './SuccessModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
 
@@ -84,12 +85,9 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
         }
       }
 
-      // Derive master key for zero-knowledge architecture
+      // Initialize master key for zero-knowledge architecture
       // This key will be used to encrypt/decrypt file metadata
-      const { salt } = await deriveMasterKey(password);
-      
-      // Store master key in session storage (in production, consider more secure storage)
-      sessionStorage.setItem('masterKeySalt', JSON.stringify(Array.from(salt)));
+      await initializeMasterKey();
       
       onAuthSuccess();
     } catch (err) {

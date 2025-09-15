@@ -2,18 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { handleAuthError } from '@/lib/auth-utils';
 
 interface User {
   id: string;
   email: string;
   created_at: string;
-<<<<<<< HEAD
-=======
   email_confirmed_at: string | null;
   last_sign_in_at: string | null;
   app_metadata: unknown;
   user_metadata: unknown;
->>>>>>> 2db990ee7db075780762571dbde6a4fd329fc525
 }
 
 interface ProfileSectionProps {
@@ -28,16 +26,25 @@ export function ProfileSection({ onLogout }: ProfileSectionProps) {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          await handleAuthError(error);
+          setUser(null);
+        } else if (user) {
           setUser({
             id: user.id,
             email: user.email || 'Unknown',
-            created_at: user.created_at
+            created_at: user.created_at,
+            email_confirmed_at: user.email_confirmed_at,
+            last_sign_in_at: user.last_sign_in_at,
+            app_metadata: user.app_metadata,
+            user_metadata: user.user_metadata
           });
         }
       } catch (error) {
         console.error('Error fetching user:', error);
+        await handleAuthError(error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +58,11 @@ export function ProfileSection({ onLogout }: ProfileSectionProps) {
         setUser({
           id: session.user.id,
           email: session.user.email || 'Unknown',
-          created_at: session.user.created_at
+          created_at: session.user.created_at,
+          email_confirmed_at: session.user.email_confirmed_at,
+          last_sign_in_at: session.user.last_sign_in_at,
+          app_metadata: session.user.app_metadata,
+          user_metadata: session.user.user_metadata
         });
       } else {
         setUser(null);
