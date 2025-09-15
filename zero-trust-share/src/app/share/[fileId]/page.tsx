@@ -49,7 +49,7 @@ export default function SharePage() {
   }, [params.fileId]);
 
   const handleUploadAnother = () => {
-    router.push('/upload');
+    router.push('/');
   };
 
   if (isLoading) {
@@ -79,10 +79,10 @@ export default function SharePage() {
           <h2 className="text-2xl font-bold text-white mb-4">File Not Found</h2>
           <p className="text-gray-300 mb-6">The file you're looking for doesn't exist or has expired.</p>
           <Link
-            href="/upload"
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-semibold transition-all duration-300"
+            href="/"
+            className="px-6 py-3 bg-electric-blue hover:bg-electric-blue-dark text-white rounded-lg font-semibold transition-all duration-300"
           >
-            Upload a New File
+            Go to Home
           </Link>
         </div>
       </div>
@@ -109,10 +109,10 @@ export default function SharePage() {
             
             <div className="flex space-x-4">
               <Link
-                href="/upload"
+                href="/download"
                 className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
               >
-                Upload File
+                Download
               </Link>
               <Link
                 href="/"

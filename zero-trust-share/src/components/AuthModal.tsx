@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { deriveMasterKey } from '@/lib/encryption';
+import { SuccessModal } from './SuccessModal';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -18,6 +19,8 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,14 +46,25 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/confirm`
+          }
         });
 
         if (error) {
           throw new Error(error.message);
         }
 
+        // Check if email confirmation is required
         if (data.user && !data.user.email_confirmed_at) {
-          throw new Error('Please check your email to confirm your account');
+          // Show success message with email confirmation instructions
+          setError('');
+          setIsLoading(false);
+          
+          // Show success modal
+          setSuccessMessage('Account created successfully! Please check your email and click the confirmation link to activate your account.');
+          setShowSuccessModal(true);
+          return;
         }
       } else {
         // Sign in with Supabase
@@ -223,6 +237,18 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
           </p>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          onClose();
+        }}
+        title="Check Your Email!"
+        message={successMessage}
+        email={email}
+      />
     </div>
   );
 }

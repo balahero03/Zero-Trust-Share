@@ -1,12 +1,11 @@
-/**
- * Supabase client configuration for AetherVault
- * Handles authentication and database operations
- */
+
+
+
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = 'https://gbjvlaboflhkvlbkuram.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdianZsYWJvZmxoa3ZsYmt1cmFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5MDc5MTIsImV4cCI6MjA3MzQ4MzkxMn0.RdY93X6dJ6oyVTAnYP53KyZoSWNGOcqyqhRf4sWUKoA'
 
 // Client-side Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
@@ -14,7 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 // Server-side Supabase client with service role key
 export const supabaseAdmin = createClient(
   supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdianZsYWJvZmxoa3ZsYmt1cmFtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzkwNzkxMiwiZXhwIjoyMDczNDgzOTEyfQ.Qi4jY72suoAP1kgGd6mEuTp8aoOjRTNgityFFNSxO3Q',
   {
     auth: {
       autoRefreshToken: false,

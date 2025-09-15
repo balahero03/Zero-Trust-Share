@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { AuthModal } from './AuthModal';
 
 interface LayoutProps {
@@ -10,13 +11,42 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLogin = () => {
     setShowAuthModal(true);
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  useEffect(() => {
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    } catch (error) {
+      console.error('Auth check error:', error);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleAuthSuccess = () => {
@@ -27,6 +57,17 @@ export function Layout({ children }: LayoutProps) {
   const handleCloseAuthModal = () => {
     setShowAuthModal(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-electric-blue/30 border-t-electric-blue rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -49,7 +90,7 @@ export function Layout({ children }: LayoutProps) {
               </div>
             </div>
             
-            {/* Auth Buttons */}
+            {/* Navigation & Auth Buttons */}
             <div className="flex items-center space-x-3">
               {!isAuthenticated ? (
                 <button
@@ -60,9 +101,24 @@ export function Layout({ children }: LayoutProps) {
                 </button>
               ) : (
                 <>
-                  <button className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm">
+                  <a
+                    href="/download"
+                    className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
+                  >
+                    Download
+                  </a>
+                  <a
+                    href="/dashboard"
+                    className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
+                  >
                     Dashboard
-                  </button>
+                  </a>
+                  <a
+                    href="/project"
+                    className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
+                  >
+                    Project
+                  </a>
                   <button
                     onClick={handleLogout}
                     className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"

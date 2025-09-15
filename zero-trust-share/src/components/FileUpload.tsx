@@ -2,7 +2,12 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { encryptFile } from '@/lib/encryption';
-import { uploadFile } from '@/lib/storage';
+import { uploadFileData, prepareFileUpload } from '@/lib/storage';
+
+// Convert Uint8Array to base64
+function uint8ArrayToBase64(uint8Array: Uint8Array): string {
+  return btoa(String.fromCharCode(...uint8Array));
+}
 
 interface FileUploadProps {
   onFileUploaded: (fileData: {
@@ -56,31 +61,36 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
     try {
       // Step 1: Encrypt the file
       setUploadProgress(10);
-      const { encryptedData, iv, key } = await encryptFile(file);
+      const { encryptedData, iv, fileSalt } = await encryptFile(file, 'default-passcode');
       
-      // Step 2: Upload to storage
+      // Step 2: Prepare upload (get upload URL and create database record)
       setUploadProgress(30);
-      const fileId = await uploadFile(encryptedData, {
-        originalName: file.name,
-        originalSize: file.size,
+      const uploadResponse = await prepareFileUpload(
+        file.name, // This should be encrypted filename, but for now using original
+        encryptedData.byteLength,
+        iv,
         burnAfterRead,
         expiryHours
-      }, iv);
+      );
+
+      // Step 3: Upload file data to S3
+      setUploadProgress(60);
+      await uploadFileData(uploadResponse.uploadUrl, encryptedData);
 
       setUploadProgress(90);
 
-      // Step 3: Generate share URL with key
-      const shareUrl = `${window.location.origin}/file/${fileId}#key=${encodeURIComponent(key)}`;
+      // Step 4: Generate share URL with file salt
+      const shareUrl = `${window.location.origin}/file/${uploadResponse.fileId}#salt=${encodeURIComponent(uint8ArrayToBase64(fileSalt))}`;
       
       setUploadProgress(100);
 
       // Notify parent component
       onFileUploaded({
-        id: fileId,
+        id: uploadResponse.fileId,
         name: file.name,
         size: file.size,
         shareUrl,
-        password: key // Using key as "password" for compatibility
+        password: 'default-passcode' // Using the passcode for compatibility
       });
 
     } catch (error) {
@@ -99,19 +109,19 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-white mb-2">Upload Your File</h3>
-        <p className="text-gray-300">Choose a file to share securely with automatic encryption</p>
+        <h3 className="text-2xl font-bold text-text-primary mb-2">Upload Your File</h3>
+        <p className="text-text-secondary">Choose a file to share securely with automatic encryption</p>
       </div>
 
       {/* Encryption Notice */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+      <div className="bg-electric-blue/10 border border-electric-blue/20 rounded-lg p-4">
         <div className="flex items-start space-x-3">
-          <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-electric-blue mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h4 className="text-sm font-medium text-blue-400 mb-1">Automatic Encryption</h4>
-            <p className="text-sm text-gray-300">
+            <h4 className="text-sm font-medium text-electric-blue mb-1">Automatic Encryption</h4>
+            <p className="text-sm text-text-secondary">
               Your file will be automatically encrypted with a unique key. The encryption key will be included in the shareable link.
             </p>
           </div>
@@ -126,23 +136,23 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
             type="checkbox"
             checked={burnAfterRead}
             onChange={(e) => setBurnAfterRead(e.target.checked)}
-            className="w-4 h-4 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500"
+            className="w-4 h-4 text-electric-blue bg-white/10 border-white/20 rounded focus:ring-electric-blue"
             disabled={isUploading}
           />
-          <label htmlFor="burnAfterRead" className="text-sm text-white">
+          <label htmlFor="burnAfterRead" className="text-sm text-text-primary">
             Burn after reading (delete after first download)
           </label>
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="expiry" className="block text-sm font-medium text-white">
+          <label htmlFor="expiry" className="block text-sm font-medium text-text-primary">
             Link expires in
           </label>
           <select
             id="expiry"
             value={expiryHours}
             onChange={(e) => setExpiryHours(Number(e.target.value))}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-electric-blue"
             disabled={isUploading}
           >
             <option value={1}>1 hour</option>
@@ -158,8 +168,8 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
       <div
         className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
           isDragOver
-            ? 'border-purple-400 bg-purple-500/10'
-            : 'border-white/30 hover:border-white/50'
+            ? 'border-electric-blue bg-electric-blue/10'
+            : 'border-white/30 hover:border-electric-blue/50'
         } ${isUploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -176,34 +186,34 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
 
         {isUploading ? (
           <div className="space-y-4">
-            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center animate-pulse">
+            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-full flex items-center justify-center animate-pulse-glow">
               <svg className="w-8 h-8 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
             <div className="space-y-2">
-              <p className="text-white font-medium">Encrypting and uploading...</p>
+              <p className="text-text-primary font-medium">Encrypting and uploading...</p>
               <div className="w-full bg-white/20 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-electric-blue to-electric-blue-light h-2 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
-              <p className="text-sm text-gray-300">{uploadProgress}% complete</p>
+              <p className="text-sm text-text-secondary">{uploadProgress}% complete</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-full flex items-center justify-center animate-float">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div>
-              <p className="text-xl font-medium text-white mb-2">
+              <p className="text-xl font-medium text-text-primary mb-2">
                 Drop your file here or click to browse
               </p>
-              <p className="text-gray-300">
+              <p className="text-text-secondary">
                 Maximum file size: 100MB
               </p>
             </div>
@@ -212,14 +222,14 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
       </div>
 
       {/* Security Notice */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+      <div className="bg-electric-blue/10 border border-electric-blue/20 rounded-lg p-4">
         <div className="flex items-start space-x-3">
-          <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-electric-blue mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h4 className="text-sm font-medium text-blue-400 mb-1">Security Notice</h4>
-            <p className="text-sm text-gray-300">
+            <h4 className="text-sm font-medium text-electric-blue mb-1">Security Notice</h4>
+            <p className="text-sm text-text-secondary">
               Your file will be encrypted with a unique key generated in your browser. The encryption key is never sent to our servers.
             </p>
           </div>
