@@ -146,3 +146,4 @@ The most common issue is the email template not having the correct link format. 
 ```html
 {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
 ```
+
