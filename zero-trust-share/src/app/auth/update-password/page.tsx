@@ -84,22 +84,32 @@ export default function UpdatePasswordPage() {
     }
   };
 
-  const handleSuccessRedirect = () => {
-    // Sign out the user and redirect to login
-    supabase.auth.signOut().then(() => {
-      router.push('/auth?message=password-updated');
-    });
+  const handleSuccessRedirect = async () => {
+    // Ensure session is properly established before redirecting
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Keep the user signed in and redirect directly to dashboard
+        router.push('/dashboard?message=password-updated');
+      } else {
+        // If no session, redirect to home with a message
+        router.push('/?message=password-updated-please-signin');
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+      router.push('/?message=password-updated-please-signin');
+    }
   };
 
   if (isCheckingSession) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 animate-slide-in-up">
+          <div className="bg-slate-darker border border-white/10 rounded-2xl p-8 animate-slide-in-up">
             <div className="text-center">
-              <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-6"></div>
-              <h2 className="text-xl font-bold text-white mb-2">Verifying Reset Link</h2>
-              <p className="text-gray-300 text-sm">Please wait while we verify your password reset link...</p>
+              <div className="w-16 h-16 border-4 border-electric-blue/30 border-t-electric-blue rounded-full animate-spin mx-auto mb-6"></div>
+              <h2 className="text-xl font-bold text-text-primary mb-2">Verifying Reset Link</h2>
+              <p className="text-text-secondary text-sm">Please wait while we verify your password reset link...</p>
             </div>
           </div>
         </div>
@@ -109,47 +119,47 @@ export default function UpdatePasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center animate-pulse-glow">
+              <div className="w-12 h-12 bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-xl flex items-center justify-center animate-pulse-glow">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">AetherVault</h1>
-                <p className="text-sm text-gray-300">Zero-Trust File Sharing</p>
+                <h1 className="text-2xl font-bold text-text-primary">AetherVault</h1>
+                <p className="text-sm text-text-secondary">Zero-Trust File Sharing</p>
               </div>
             </Link>
           </div>
 
           {/* Success Card */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 animate-slide-in-up">
+          <div className="bg-slate-darker border border-white/10 rounded-2xl p-8 animate-slide-in-up">
             <div className="text-center">
               {/* Success Icon */}
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-4">Password Updated!</h2>
+              <h2 className="text-2xl font-bold text-text-primary mb-4">Password Updated!</h2>
               
-              <p className="text-gray-300 mb-6">
-                Your password has been successfully updated. You can now sign in with your new password.
+              <p className="text-text-secondary mb-6">
+                Your password has been successfully updated! You're now signed in and ready to continue.
               </p>
 
-              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-6">
+              <div className="bg-success/10 border border-success/20 rounded-lg p-4 mb-6">
                 <div className="flex items-start space-x-3">
-                  <svg className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
-                    <h4 className="text-sm font-medium text-green-400 mb-1">Security Updated</h4>
-                    <p className="text-sm text-gray-300">
+                    <h4 className="text-sm font-medium text-success mb-1">Security Updated</h4>
+                    <p className="text-sm text-text-secondary">
                       Your account is now secured with your new password. Remember to keep it safe!
                     </p>
                   </div>
@@ -158,9 +168,9 @@ export default function UpdatePasswordPage() {
 
               <button
                 onClick={handleSuccessRedirect}
-                className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25"
+                className="w-full px-6 py-4 bg-electric-blue hover:bg-electric-blue-dark text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-electric-blue/25"
               >
-                Sign In with New Password
+                Continue to Dashboard
               </button>
             </div>
           </div>
@@ -169,7 +179,7 @@ export default function UpdatePasswordPage() {
           <div className="text-center mt-6">
             <Link
               href="/"
-              className="text-gray-400 hover:text-white transition-colors text-sm"
+              className="text-text-secondary hover:text-text-primary transition-colors text-sm"
             >
               ← Back to Home
             </Link>
@@ -181,50 +191,50 @@ export default function UpdatePasswordPage() {
 
   if (!isValidSession) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center animate-pulse-glow">
+              <div className="w-12 h-12 bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-xl flex items-center justify-center animate-pulse-glow">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">AetherVault</h1>
-                <p className="text-sm text-gray-300">Zero-Trust File Sharing</p>
+                <h1 className="text-2xl font-bold text-text-primary">AetherVault</h1>
+                <p className="text-sm text-text-secondary">Zero-Trust File Sharing</p>
               </div>
             </Link>
           </div>
 
           {/* Error Card */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 animate-slide-in-up">
+          <div className="bg-slate-darker border border-white/10 rounded-2xl p-8 animate-slide-in-up">
             <div className="text-center">
               {/* Error Icon */}
-              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-4">Invalid Reset Link</h2>
+              <h2 className="text-2xl font-bold text-text-primary mb-4">Invalid Reset Link</h2>
               
-              <p className="text-gray-300 mb-6">
+              <p className="text-text-secondary mb-6">
                 {error || 'This password reset link is invalid or has expired. Please request a new one.'}
               </p>
 
               <div className="space-y-3">
                 <Link
                   href="/auth/reset-password"
-                  className="block w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25 text-center"
+                  className="block w-full px-6 py-3 bg-electric-blue hover:bg-electric-blue-dark text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-electric-blue/25 text-center"
                 >
                   Request New Reset Link
                 </Link>
                 
                 <Link
                   href="/auth"
-                  className="block w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all duration-300 text-center"
+                  className="block w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-text-primary rounded-lg font-semibold transition-all duration-300 text-center"
                 >
                   Back to Sign In
                 </Link>
@@ -236,7 +246,7 @@ export default function UpdatePasswordPage() {
           <div className="text-center mt-6">
             <Link
               href="/"
-              className="text-gray-400 hover:text-white transition-colors text-sm"
+              className="text-text-secondary hover:text-text-primary transition-colors text-sm"
             >
               ← Back to Home
             </Link>
@@ -247,35 +257,35 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center animate-pulse-glow">
+            <div className="w-12 h-12 bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-xl flex items-center justify-center animate-pulse-glow">
               <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">AetherVault</h1>
-              <p className="text-sm text-gray-300">Zero-Trust File Sharing</p>
+              <h1 className="text-2xl font-bold text-text-primary">AetherVault</h1>
+              <p className="text-sm text-text-secondary">Zero-Trust File Sharing</p>
             </div>
           </Link>
         </div>
 
         {/* Update Password Form */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 animate-slide-in-up">
+        <div className="bg-slate-darker border border-white/10 rounded-2xl p-8 animate-slide-in-up">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Set New Password</h2>
-            <p className="text-gray-300 text-sm">
+            <h2 className="text-2xl font-bold text-text-primary mb-2">Set New Password</h2>
+            <p className="text-text-secondary text-sm">
               Enter your new password below. Make sure it's secure and easy to remember.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-white">
+              <label htmlFor="password" className="block text-sm font-medium text-text-primary">
                 New Password
               </label>
               <input
@@ -285,7 +295,7 @@ export default function UpdatePasswordPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
                 placeholder="Enter your new password"
                 disabled={isLoading}
                 minLength={6}
@@ -293,7 +303,7 @@ export default function UpdatePasswordPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-primary">
                 Confirm New Password
               </label>
               <input
@@ -303,7 +313,7 @@ export default function UpdatePasswordPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
                 placeholder="Confirm your new password"
                 disabled={isLoading}
                 minLength={6}
@@ -311,27 +321,27 @@ export default function UpdatePasswordPage() {
             </div>
 
             {/* Password Requirements */}
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-400 mb-2">Password Requirements:</h4>
-              <ul className="text-sm text-gray-300 space-y-1">
+            <div className="bg-electric-blue/10 border border-electric-blue/20 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-electric-blue mb-2">Password Requirements:</h4>
+              <ul className="text-sm text-text-secondary space-y-1">
                 <li className="flex items-center space-x-2">
-                  <span className={`w-2 h-2 rounded-full ${password.length >= 6 ? 'bg-green-400' : 'bg-gray-500'}`}></span>
+                  <span className={`w-2 h-2 rounded-full ${password.length >= 6 ? 'bg-success' : 'bg-gray-500'}`}></span>
                   <span>At least 6 characters</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <span className={`w-2 h-2 rounded-full ${password === confirmPassword && password.length > 0 ? 'bg-green-400' : 'bg-gray-500'}`}></span>
+                  <span className={`w-2 h-2 rounded-full ${password === confirmPassword && password.length > 0 ? 'bg-success' : 'bg-gray-500'}`}></span>
                   <span>Passwords match</span>
                 </li>
               </ul>
             </div>
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+              <div className="bg-error/10 border border-error/20 rounded-lg p-4">
                 <div className="flex items-center space-x-3">
-                  <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-error flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-red-400 text-sm">{error}</p>
+                  <p className="text-error text-sm">{error}</p>
                 </div>
               </div>
             )}
@@ -339,7 +349,7 @@ export default function UpdatePasswordPage() {
             <button
               type="submit"
               disabled={isLoading || password.length < 6 || password !== confirmPassword}
-              className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25"
+              className="w-full px-6 py-4 bg-electric-blue hover:bg-electric-blue-dark disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-electric-blue/25"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -359,7 +369,7 @@ export default function UpdatePasswordPage() {
         <div className="text-center mt-6">
           <Link
             href="/"
-            className="text-gray-400 hover:text-white transition-colors text-sm"
+            className="text-text-secondary hover:text-text-primary transition-colors text-sm"
           >
             ← Back to Home
           </Link>

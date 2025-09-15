@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPasswordUpdatedMessage, setShowPasswordUpdatedMessage] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -25,6 +26,15 @@ export default function Home() {
     };
 
     checkAuth();
+
+    // Check for password updated message
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('message') === 'password-updated-please-signin') {
+      setShowPasswordUpdatedMessage(true);
+      // Clear the message from URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -55,6 +65,33 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Password Updated Success Message */}
+      {showPasswordUpdatedMessage && (
+        <div className="max-w-4xl mx-auto px-4 pt-4">
+          <div className="bg-success/10 border border-success/20 rounded-lg p-4 mb-4 animate-slide-in-up">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h4 className="text-sm font-medium text-success">Password Updated Successfully!</h4>
+                  <p className="text-sm text-text-secondary">Please sign in with your new password to continue.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowPasswordUpdatedMessage(false)}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Hero Section */}
       <div className="text-center py-16 px-4">
         <div className="max-w-4xl mx-auto mb-12 animate-fade-in">
