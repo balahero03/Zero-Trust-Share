@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { AuthModal } from './AuthModal';
-import { ShareResult } from './ShareResult';
+// import { ShareResult } from './ShareResult'; // No longer used
+import { ShareSuccessModal } from './ShareSuccessModal';
 import { supabase } from '@/lib/supabase';
 import { encryptFile, encryptMetadata, deriveMasterKey } from '@/lib/encryption';
 import { prepareFileUpload, uploadFileData } from '@/lib/storage';
@@ -405,11 +406,14 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
       )}
 
       {/* Success State */}
-      {state === 'success' && shareData && (
-        <ShareResult
-          shareLink={shareData.link}
-          passcode={shareData.passcode}
-          onReset={handleReset}
+      {state === 'success' && shareData && selectedFile && (
+        <ShareSuccessModal
+          isOpen={true}
+          onClose={handleReset}
+          fileId={shareData.link.split('/file/')[1]?.split('#')[0] || ''}
+          fileName={selectedFile.name}
+          shareUrl={shareData.link}
+          fileSize={selectedFile.size}
         />
       )}
     </div>

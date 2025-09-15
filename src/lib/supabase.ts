@@ -47,10 +47,22 @@ export interface SharedFile {
   encrypted_file_name: string
   file_size: number
   file_salt: string
+  file_iv: string
   expires_at: string | null
   burn_after_read: boolean
   download_count: number
   created_at: string
+}
+
+export interface EmailShare {
+  id: string
+  file_id: string
+  sender_id: string
+  recipient_email: string
+  recipient_id: string | null
+  sent_at: string
+  opened_at: string | null
+  status: 'sent' | 'opened' | 'failed'
 }
 
 export interface Database {
@@ -60,6 +72,11 @@ export interface Database {
         Row: SharedFile
         Insert: Omit<SharedFile, 'id' | 'created_at' | 'download_count'>
         Update: Partial<Omit<SharedFile, 'id' | 'created_at'>>
+      }
+      email_shares: {
+        Row: EmailShare
+        Insert: Omit<EmailShare, 'id' | 'sent_at' | 'opened_at'>
+        Update: Partial<Omit<EmailShare, 'id' | 'sent_at'>>
       }
     }
   }

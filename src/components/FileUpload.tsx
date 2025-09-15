@@ -73,9 +73,9 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
         expiryHours
       );
 
-      // Step 3: Upload file data to S3
+      // Step 3: Upload file data to Supabase Storage
       setUploadProgress(60);
-      await uploadFileData(uploadResponse.uploadUrl, encryptedData);
+      await uploadFileData(uploadResponse.fileName, encryptedData);
 
       setUploadProgress(90);
 

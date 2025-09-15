@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       expiryHours = 24 
     } = body
 
-    if (!encryptedFileName || !fileSize || !fileSalt || !fileIv) {
+    if (!encryptedFileName || !fileSize || !fileSalt) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -52,11 +52,11 @@ export async function POST(request: NextRequest) {
       .from('shared_files')
       .insert({
         owner_id: user.id,
-        file_name: fileName, // Using file_name field for Supabase Storage
+        s3_key: fileName, // Using s3_key field (will be renamed to file_name after DB update)
         encrypted_file_name: encryptedFileName,
         file_size: fileSize,
         file_salt: fileSalt,
-        file_iv: fileIv,
+        file_iv: fileIv || 'temp-iv', // Temporary fix
         expires_at: expiresAt,
         burn_after_read: burnAfterRead,
         download_count: 0

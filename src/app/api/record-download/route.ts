@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Get file record
     const { data: fileRecord, error: fetchError } = await supabaseAdmin
       .from('shared_files')
-      .select('file_name, burn_after_read, download_count')
+      .select('s3_key, burn_after_read, download_count')
       .eq('id', fileId)
       .single()
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         // Delete from Supabase Storage
         const { error: storageError } = await supabaseAdmin.storage
           .from('aethervault-files')
-          .remove([fileRecord.file_name])
+          .remove([fileRecord.s3_key])
         
         if (storageError) {
           console.error('Storage delete error:', storageError)

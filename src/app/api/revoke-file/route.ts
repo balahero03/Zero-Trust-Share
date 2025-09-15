@@ -33,7 +33,7 @@ export async function DELETE(request: NextRequest) {
     // Get file record and verify ownership
     const { data: fileRecord, error: fetchError } = await supabaseAdmin
       .from('shared_files')
-      .select('file_name, owner_id')
+      .select('s3_key, owner_id')
       .eq('id', fileId)
       .single()
 
@@ -50,7 +50,7 @@ export async function DELETE(request: NextRequest) {
         // Delete from Supabase Storage
         const { error: storageError } = await supabaseAdmin.storage
           .from('aethervault-files')
-          .remove([fileRecord.file_name])
+          .remove([fileRecord.s3_key])
 
       if (storageError) {
         console.error('Storage delete error:', storageError)
