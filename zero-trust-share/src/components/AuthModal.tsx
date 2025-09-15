@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { deriveMasterKey } from '@/lib/encryption';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -36,10 +38,43 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
         throw new Error('Password must be at least 6 characters');
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (mode === 'signup') {
+        // Sign up with Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-      // For demo purposes, always succeed
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (data.user && !data.user.email_confirmed_at) {
+          throw new Error('Please check your email to confirm your account');
+        }
+      } else {
+        // Sign in with Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (!data.user) {
+          throw new Error('Login failed');
+        }
+      }
+
+      // Derive master key for zero-knowledge architecture
+      // This key will be used to encrypt/decrypt file metadata
+      const { masterKey, salt } = await deriveMasterKey(password);
+      
+      // Store master key in session storage (in production, consider more secure storage)
+      sessionStorage.setItem('masterKeySalt', JSON.stringify(Array.from(salt)));
+      
       onAuthSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

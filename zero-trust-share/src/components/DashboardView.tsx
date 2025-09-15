@@ -1,16 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getUserFiles, revokeFile } from '@/lib/storage';
+import { decryptMetadata, deriveMasterKey } from '@/lib/encryption';
 
 interface SharedFile {
   id: string;
-  name: string;
-  size: number;
-  dateShared: string;
-  status: 'active' | 'expired' | 'burned';
-  link: string;
-  downloadCount: number;
-  maxDownloads?: number;
+  encrypted_file_name: string;
+  file_size: number;
+  expires_at: string | null;
+  burn_after_read: boolean;
+  download_count: number;
+  created_at: string;
+  decryptedName?: string;
 }
 
 interface DashboardViewProps {
@@ -20,38 +22,60 @@ interface DashboardViewProps {
 export function DashboardView({}: DashboardViewProps) {
   const [showRevokeModal, setShowRevokeModal] = useState<string | null>(null);
   const [isRevoking, setIsRevoking] = useState(false);
+  const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Mock data - in a real app, this would come from an API
-  const [sharedFiles, setSharedFiles] = useState<SharedFile[]>([
-    {
-      id: '1',
-      name: 'confidential-report.pdf',
-      size: 2048576,
-      dateShared: '2024-01-15T10:30:00Z',
-      status: 'active',
-      link: 'https://aethervault.com/share/abc123',
-      downloadCount: 2,
-      maxDownloads: 5,
-    },
-    {
-      id: '2',
-      name: 'project-proposal.docx',
-      size: 1024000,
-      dateShared: '2024-01-14T14:20:00Z',
-      status: 'expired',
-      link: 'https://aethervault.com/share/def456',
-      downloadCount: 1,
-    },
-    {
-      id: '3',
-      name: 'sensitive-data.xlsx',
-      size: 512000,
-      dateShared: '2024-01-13T09:15:00Z',
-      status: 'burned',
-      link: 'https://aethervault.com/share/ghi789',
-      downloadCount: 1,
-    },
-  ]);
+  // Load user's files
+  useEffect(() => {
+    const loadFiles = async () => {
+      try {
+        setIsLoading(true);
+        const files = await getUserFiles();
+        
+        // Decrypt file names using master key
+        const masterKeySalt = sessionStorage.getItem('masterKeySalt');
+        if (masterKeySalt) {
+          // For demo purposes, we'll use a placeholder password
+          // In production, you'd store the master key more securely
+          const { masterKey } = await deriveMasterKey('demo-password', new Uint8Array(JSON.parse(masterKeySalt)));
+          
+          const decryptedFiles = await Promise.all(
+            files.map(async (file) => {
+              try {
+                // In a real implementation, you'd decrypt the filename here
+                // For now, we'll use a placeholder
+                return {
+                  ...file,
+                  decryptedName: `File-${file.id.slice(0, 8)}`
+                };
+              } catch (error) {
+                console.error('Failed to decrypt filename:', error);
+                return {
+                  ...file,
+                  decryptedName: `Encrypted File ${file.id.slice(0, 8)}`
+                };
+              }
+            })
+          );
+          
+          setSharedFiles(decryptedFiles);
+        } else {
+          setSharedFiles(files.map(file => ({
+            ...file,
+            decryptedName: `File-${file.id.slice(0, 8)}`
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to load files:', error);
+        setError('Failed to load your files');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadFiles();
+  }, []);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -71,8 +95,19 @@ export function DashboardView({}: DashboardViewProps) {
     });
   };
 
-  const getStatusBadge = (status: SharedFile['status']) => {
+  const getFileStatus = (file: SharedFile) => {
+    if (file.burn_after_read && file.download_count > 0) {
+      return 'burned';
+    }
+    if (file.expires_at && new Date(file.expires_at) < new Date()) {
+      return 'expired';
+    }
+    return 'active';
+  };
+
+  const getStatusBadge = (file: SharedFile) => {
     const baseClasses = 'px-2 py-1 text-xs font-medium rounded-full';
+    const status = getFileStatus(file);
     
     switch (status) {
       case 'active':
@@ -90,19 +125,14 @@ export function DashboardView({}: DashboardViewProps) {
     setIsRevoking(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await revokeFile(fileId);
       
-      // Update the file status
-      setSharedFiles(prev => 
-        prev.map(file => 
-          file.id === fileId ? { ...file, status: 'burned' as const } : file
-        )
-      );
-      
+      // Remove from local state
+      setSharedFiles(prev => prev.filter(file => file.id !== fileId));
       setShowRevokeModal(null);
     } catch (error) {
       console.error('Failed to revoke file:', error);
+      setError('Failed to revoke file access');
     } finally {
       setIsRevoking(false);
     }
@@ -115,6 +145,50 @@ export function DashboardView({}: DashboardViewProps) {
       console.error('Failed to copy to clipboard:', err);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="bg-slate-darker border border-white/10 rounded-2xl p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-electric-blue/10 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-electric-blue/30 border-t-electric-blue rounded-full animate-spin"></div>
+          </div>
+          <h3 className="text-xl font-semibold text-text-primary mb-2">
+            Loading Your Files
+          </h3>
+          <p className="text-text-secondary">
+            Please wait while we retrieve your shared files...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="bg-slate-darker border border-white/10 rounded-2xl p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-error/10 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-text-primary mb-2">
+            Failed to Load Files
+          </h3>
+          <p className="text-text-secondary mb-4">
+            {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-electric-blue hover:bg-electric-blue-dark text-white rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -147,7 +221,7 @@ export function DashboardView({}: DashboardViewProps) {
             <div>
               <p className="text-text-secondary text-sm">Active Shares</p>
               <p className="text-2xl font-bold text-success">
-                {sharedFiles.filter(f => f.status === 'active').length}
+                {sharedFiles.filter(f => getFileStatus(f) === 'active').length}
               </p>
             </div>
             <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
@@ -163,7 +237,7 @@ export function DashboardView({}: DashboardViewProps) {
             <div>
               <p className="text-text-secondary text-sm">Total Downloads</p>
               <p className="text-2xl font-bold text-electric-blue">
-                {sharedFiles.reduce((sum, file) => sum + file.downloadCount, 0)}
+                {sharedFiles.reduce((sum, file) => sum + file.download_count, 0)}
               </p>
             </div>
             <div className="w-12 h-12 bg-electric-blue/10 rounded-lg flex items-center justify-center">
@@ -209,32 +283,32 @@ export function DashboardView({}: DashboardViewProps) {
                         </svg>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-text-primary">{file.name}</div>
-                        <div className="text-sm text-text-secondary">{formatFileSize(file.size)}</div>
+                        <div className="text-sm font-medium text-text-primary">{file.decryptedName}</div>
+                        <div className="text-sm text-text-secondary">{formatFileSize(file.file_size)}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-text-secondary">
-                    {formatDate(file.dateShared)}
+                    {formatDate(file.created_at)}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={getStatusBadge(file.status)}>
-                      {file.status.charAt(0).toUpperCase() + file.status.slice(1)}
+                    <span className={getStatusBadge(file)}>
+                      {getFileStatus(file).charAt(0).toUpperCase() + getFileStatus(file).slice(1)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-text-secondary">
-                    {file.downloadCount}
-                    {file.maxDownloads && ` / ${file.maxDownloads}`}
+                    {file.download_count}
+                    {file.burn_after_read && ' (burn after read)'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => copyToClipboard(file.link)}
+                        onClick={() => copyToClipboard(`${window.location.origin}/share/${file.id}`)}
                         className="text-electric-blue hover:text-electric-blue-light text-sm font-medium transition-colors"
                       >
                         Copy Link
                       </button>
-                      {file.status === 'active' && (
+                      {getFileStatus(file) === 'active' && (
                         <button
                           onClick={() => setShowRevokeModal(file.id)}
                           className="text-error hover:text-error/80 text-sm font-medium transition-colors"

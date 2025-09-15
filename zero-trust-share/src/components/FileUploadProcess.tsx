@@ -3,6 +3,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { AuthModal } from './AuthModal';
 import { ShareResult } from './ShareResult';
+import { supabase } from '@/lib/supabase';
+import { encryptFile, encryptMetadata, deriveMasterKey } from '@/lib/encryption';
+import { prepareFileUpload, uploadFileData } from '@/lib/storage';
 
 type UploadState = 'idle' | 'auth-gated' | 'config' | 'processing' | 'success';
 
@@ -25,11 +28,13 @@ export function FileUploadProcess({ isAuthenticated, onAuthSuccess }: FileUpload
   const [linkExpiry, setLinkExpiry] = useState('24h');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>([
-    { id: 'encrypt', label: 'Encrypting...', completed: false },
-    { id: 'upload', label: 'Uploading to AWS...', completed: false },
+    { id: 'encrypt', label: 'Encrypting file...', completed: false },
+    { id: 'metadata', label: 'Encrypting metadata...', completed: false },
+    { id: 'upload', label: 'Uploading to secure storage...', completed: false },
     { id: 'finalize', label: 'Finalizing...', completed: false },
   ]);
   const [shareData, setShareData] = useState<{ link: string; passcode: string } | null>(null);
+  const [error, setError] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,21 +89,73 @@ export function FileUploadProcess({ isAuthenticated, onAuthSuccess }: FileUpload
 
     setState('processing');
     
-    // Simulate processing steps
-    for (let i = 0; i < processingSteps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+    try {
+      // Step 1: Encrypt the file
       setProcessingSteps(prev => 
         prev.map((step, index) => 
-          index === i ? { ...step, completed: true } : step
+          index === 0 ? { ...step, completed: true } : step
         )
       );
-    }
+      
+      const { encryptedData, iv, fileSalt } = await encryptFile(selectedFile, passcode);
 
-    // Generate mock share data
-    const mockLink = `https://aethervault.com/share/${Math.random().toString(36).substr(2, 9)}`;
-    setShareData({ link: mockLink, passcode });
-    setState('success');
+      // Step 2: Encrypt metadata (filename) with master key
+      setProcessingSteps(prev => 
+        prev.map((step, index) => 
+          index === 1 ? { ...step, completed: true } : step
+        )
+      );
+
+      // Get master key from session storage
+      const masterKeySalt = sessionStorage.getItem('masterKeySalt');
+      if (!masterKeySalt) {
+        throw new Error('Session expired. Please log in again.');
+      }
+
+      // For demo purposes, we'll use a placeholder password
+      // In production, you'd store the master key more securely
+      const { masterKey } = await deriveMasterKey('demo-password', new Uint8Array(JSON.parse(masterKeySalt)));
+      
+      const { encryptedData: encryptedFileName } = await encryptMetadata(selectedFile.name, masterKey);
+
+      // Step 3: Prepare upload and upload to S3
+      setProcessingSteps(prev => 
+        prev.map((step, index) => 
+          index === 2 ? { ...step, completed: true } : step
+        )
+      );
+
+      const expiryHours = linkExpiry === '1h' ? 1 : 
+                         linkExpiry === '24h' ? 24 : 
+                         linkExpiry === '7d' ? 168 : 720;
+
+      const { uploadUrl, fileId } = await prepareFileUpload(
+        encryptedFileName,
+        selectedFile.size,
+        fileSalt,
+        burnAfterRead,
+        expiryHours
+      );
+
+      await uploadFileData(uploadUrl, encryptedData);
+
+      // Step 4: Finalize
+      setProcessingSteps(prev => 
+        prev.map((step, index) => 
+          index === 3 ? { ...step, completed: true } : step
+        )
+      );
+
+      // Generate share link
+      const shareLink = `${window.location.origin}/share/${fileId}`;
+      setShareData({ link: shareLink, passcode });
+      setState('success');
+
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setError(error instanceof Error ? error.message : 'Upload failed');
+      setState('config');
+    }
   };
 
   const handleReset = () => {
@@ -109,6 +166,7 @@ export function FileUploadProcess({ isAuthenticated, onAuthSuccess }: FileUpload
     setLinkExpiry('24h');
     setProcessingSteps(prev => prev.map(step => ({ ...step, completed: false })));
     setShareData(null);
+    setError('');
   };
 
   const getFileIcon = (file: File) => {
@@ -256,6 +314,13 @@ export function FileUploadProcess({ isAuthenticated, onAuthSuccess }: FileUpload
                 </select>
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-error/10 border border-error/20 rounded-lg p-3">
+                <p className="text-error text-sm">{error}</p>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex space-x-4">

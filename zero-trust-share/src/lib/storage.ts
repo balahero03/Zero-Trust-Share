@@ -1,9 +1,9 @@
 /**
- * Storage utilities for encrypted file upload and download
- * Handles generic backend integration
+ * AetherVault Storage Utilities
+ * Handles zero-knowledge file upload and download with Supabase + AWS S3
  */
 
-import { generateFileId } from './encryption';
+import { supabase } from './supabase';
 
 export interface FileMetadata {
   originalName: string;
@@ -15,45 +15,65 @@ export interface FileMetadata {
   expiresAt: string;
 }
 
-/**
- * Upload encrypted file to storage
- */
-export async function uploadFile(
-  encryptedData: ArrayBuffer,
-  metadata: Omit<FileMetadata, 'uploadedAt' | 'expiresAt'>,
-  iv: Uint8Array
-): Promise<string> {
-  try {
-    const fileId = generateFileId();
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + metadata.expiryHours * 60 * 60 * 1000);
+export interface UploadResponse {
+  fileId: string;
+  uploadUrl: string;
+  s3Key: string;
+}
 
-    const fullMetadata: FileMetadata = {
-      ...metadata,
-      iv: Array.from(iv),
-      uploadedAt: now.toISOString(),
-      expiresAt: expiresAt.toISOString()
-    };
+/**
+ * Prepare file upload by getting pre-signed URL and creating database record
+ */
+export async function prepareFileUpload(
+  encryptedFileName: string,
+  fileSize: number,
+  fileSalt: Uint8Array,
+  burnAfterRead: boolean = false,
+  expiryHours: number = 24
+): Promise<UploadResponse> {
+  try {
+    // Get current session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Not authenticated');
+    }
 
     // Get pre-signed upload URL from backend
-    const uploadResponse = await fetch('/api/upload', {
+    const uploadResponse = await fetch('/api/prepare-upload', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
       },
       body: JSON.stringify({
-        fileId,
-        metadata: fullMetadata
+        encryptedFileName,
+        fileSize,
+        fileSalt: Array.from(fileSalt),
+        burnAfterRead,
+        expiryHours
       })
     });
 
     if (!uploadResponse.ok) {
-      throw new Error('Failed to get upload URL');
+      const error = await uploadResponse.json();
+      throw new Error(error.error || 'Failed to prepare upload');
     }
 
-    const { uploadUrl } = await uploadResponse.json();
+    return await uploadResponse.json();
+  } catch (error) {
+    console.error('Prepare upload failed:', error);
+    throw new Error('Failed to prepare upload. Please try again.');
+  }
+}
 
-    // Upload encrypted data directly to S3
+/**
+ * Upload encrypted file data to S3 using pre-signed URL
+ */
+export async function uploadFileData(
+  uploadUrl: string,
+  encryptedData: ArrayBuffer
+): Promise<void> {
+  try {
     const uploadResult = await fetch(uploadUrl, {
       method: 'PUT',
       body: encryptedData,
@@ -63,13 +83,45 @@ export async function uploadFile(
     });
 
     if (!uploadResult.ok) {
-      throw new Error('Failed to upload file');
+      throw new Error('Failed to upload file data');
+    }
+  } catch (error) {
+    console.error('Upload data failed:', error);
+    throw new Error('Failed to upload file data. Please try again.');
+  }
+}
+
+/**
+ * Get file metadata for download
+ */
+export async function getFileMetadata(fileId: string): Promise<{
+  fileSize: number;
+  fileSalt: Uint8Array;
+  burnAfterRead: boolean;
+  downloadCount: number;
+}> {
+  try {
+    const response = await fetch(`/api/get-file-metadata/${fileId}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('File not found');
+      } else if (response.status === 410) {
+        throw new Error('File has expired or been consumed');
+      }
+      throw new Error('Failed to get file metadata');
     }
 
-    return fileId;
+    const data = await response.json();
+    return {
+      fileSize: data.fileSize,
+      fileSalt: new Uint8Array(data.fileSalt),
+      burnAfterRead: data.burnAfterRead,
+      downloadCount: data.downloadCount
+    };
   } catch (error) {
-    console.error('Upload failed:', error);
-    throw new Error('Failed to upload file. Please try again.');
+    console.error('Failed to get metadata:', error);
+    throw error;
   }
 }
 
@@ -79,11 +131,13 @@ export async function uploadFile(
 export async function downloadFile(fileId: string): Promise<ArrayBuffer> {
   try {
     // Get pre-signed download URL from backend
-    const downloadResponse = await fetch(`/api/file/${fileId}/download`);
+    const downloadResponse = await fetch(`/api/get-file-download/${fileId}`);
 
     if (!downloadResponse.ok) {
       if (downloadResponse.status === 404) {
-        throw new Error('File not found or expired');
+        throw new Error('File not found');
+      } else if (downloadResponse.status === 410) {
+        throw new Error('File has expired or been consumed');
       }
       throw new Error('Failed to get download URL');
     }
@@ -105,56 +159,96 @@ export async function downloadFile(fileId: string): Promise<ArrayBuffer> {
 }
 
 /**
- * Get file metadata
+ * Record successful download
  */
-export async function getFileMetadata(fileId: string): Promise<FileMetadata> {
+export async function recordDownload(fileId: string): Promise<{
+  success: boolean;
+  downloadCount: number;
+  burned: boolean;
+}> {
   try {
-    const response = await fetch(`/api/file/${fileId}/metadata`);
+    const response = await fetch('/api/record-download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fileId })
+    });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('File not found or expired');
-      }
-      throw new Error('Failed to get file metadata');
+      throw new Error('Failed to record download');
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Failed to get metadata:', error);
+    console.error('Failed to record download:', error);
     throw error;
   }
 }
 
 /**
- * Delete file (for burn after read)
+ * Get user's files for dashboard
  */
-export async function deleteFile(fileId: string): Promise<void> {
+export async function getUserFiles(): Promise<Array<{
+  id: string;
+  encrypted_file_name: string;
+  file_size: number;
+  expires_at: string | null;
+  burn_after_read: boolean;
+  download_count: number;
+  created_at: string;
+}>> {
   try {
-    const response = await fetch(`/api/file/${fileId}`, {
-      method: 'DELETE'
+    // Get current session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch('/api/my-files', {
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      }
     });
 
     if (!response.ok) {
-      throw new Error('Failed to delete file');
+      throw new Error('Failed to get user files');
     }
+
+    const data = await response.json();
+    return data.files;
   } catch (error) {
-    console.error('Failed to delete file:', error);
+    console.error('Failed to get user files:', error);
     throw error;
   }
 }
 
 /**
- * Check if file exists and is not expired
+ * Revoke file access
  */
-export async function validateFile(fileId: string): Promise<boolean> {
+export async function revokeFile(fileId: string): Promise<void> {
   try {
-    const metadata = await getFileMetadata(fileId);
-    const now = new Date();
-    const expiresAt = new Date(metadata.expiresAt);
-    
-    return now < expiresAt;
+    // Get current session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch('/api/revoke-file', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({ fileId })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to revoke file');
+    }
   } catch (error) {
-    return false;
+    console.error('Failed to revoke file:', error);
+    throw error;
   }
 }
 

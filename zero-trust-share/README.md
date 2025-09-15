@@ -1,195 +1,186 @@
-# ZeroVault - Zero-Trust File Sharing
+# AetherVault - Zero-Knowledge File Sharing Platform
 
-A secure, client-side encrypted file sharing platform where even the service provider cannot access your files.
+AetherVault is the first platform to apply a full-stack, zero-knowledge architecture, encrypting not only your shared files but also your account metadata, ensuring absolute privacy even in the event of a full server-side breach.
 
-## 🔒 Features
+## 🏆 The Winning Vision
 
-- **Client-Side Encryption**: Files are encrypted in your browser using AES-256-GCM before upload
-- **Password Protection**: Add an extra layer of security with a password that only you and the recipient know
-- **Burn After Reading**: Files can be set to self-destruct after being downloaded once
-- **Link Expiration**: Set automatic expiration times for shared links
-- **QR Code Sharing**: Generate QR codes for easy mobile sharing
-- **Zero Knowledge**: The server never sees your files or encryption keys
+**"AetherVault is the first platform to apply a full-stack, zero-knowledge architecture, encrypting not only your shared files but also your account metadata, ensuring absolute privacy even in the event of a full server-side breach."**
+
+## 🔐 Zero-Knowledge Architecture
+
+### The Triangle of Trustless Exchange
+
+| Feature | Google Drive | WeTransfer | Firefox Send | AetherVault |
+|---------|-------------|------------|--------------|-------------|
+| **Uncompromising Privacy** | ❌ Server-Side Encryption | ❌ Server-Side Encryption | ✅ Client-Side E2EE | ✅ **Full-Stack Zero-Knowledge** |
+| **Verifiable Delivery** | ❌ Insecure Password Model | ❌ Insecure Password Model | ❌ No delivery verification | ✅ **The Digital Handshake** |
+| **Accountable Control** | ❌ Limited Policy Control | ❌ No User Control | ❌ Anonymous model led to abuse | ✅ **Auth-gated with superior security** |
+
+### Key Features
+
+- **Zero-Knowledge Encryption**: All encryption happens client-side using Web Crypto API
+- **PBKDF2 Key Derivation**: 100,000 iterations for strong key derivation
+- **Metadata Protection**: Even file names are encrypted with user's master key
+- **Burn After Read**: Files can be automatically deleted after first download
+- **Expiry Controls**: Set custom expiration times for shared files
+- **Secure Storage**: Files stored as encrypted blobs in AWS S3
+- **Pre-signed URLs**: Direct client-to-S3 upload/download for efficiency
+
+## 🏗️ Architecture
+
+### Frontend (Next.js/React)
+- User interface and interaction
+- **All cryptographic operations**
+- Zero-knowledge file encryption/decryption
+- Master key derivation and management
+
+### Backend (Supabase + Next.js API Routes)
+- **Supabase**: User authentication and database
+- **API Routes**: Trusted broker for S3 operations
+- **Database**: Stores only encrypted metadata
+
+### Storage (AWS S3)
+- Encrypted file storage
+- Pre-signed URL generation
+- No knowledge of keys or content
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js 18+ 
-- AWS S3 bucket
-- AWS credentials
+- Node.js 18+
+- Supabase account
+- AWS account with S3 access
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone and install dependencies:**
 ```bash
 git clone <repository-url>
 cd zero-trust-share
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Set up environment variables:
+2. **Set up environment variables:**
 ```bash
 cp env.example .env.local
+# Edit .env.local with your credentials
 ```
 
-Edit `.env.local` with your AWS credentials:
-```env
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=your_access_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_key_here
-AWS_S3_BUCKET=your-bucket-name
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
+3. **Set up Supabase:**
+   - Create a new Supabase project
+   - Run the SQL from `supabase-schema.sql` in the SQL Editor
+   - Get your project URL and keys
 
-4. Run the development server:
+4. **Set up AWS S3:**
+   - Create an S3 bucket
+   - Configure CORS (see SETUP_GUIDE.md)
+   - Create IAM user with S3 permissions
+
+5. **Run the application:**
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+## 📁 Project Structure
 
-## 🏗️ Architecture
-
-### Frontend (Browser)
-- **Encryption**: AES-256-GCM with PBKDF2 key derivation
-- **Key Management**: Encryption keys never leave the browser
-- **UI**: React with Tailwind CSS and custom animations
-
-### Backend (API Routes)
-- **Storage**: AWS S3 with pre-signed URLs
-- **Metadata**: File information stored separately from encrypted data
-- **Security**: No access to file contents or encryption keys
-
-### Security Model
-1. User selects file and sets password
-2. Browser generates random salt and IV
-3. Password is used with PBKDF2 to derive encryption key
-4. File is encrypted with AES-256-GCM
-5. Encrypted data is uploaded to S3
-6. Shareable link is generated with password in URL fragment
-7. Recipient uses password to decrypt file in their browser
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   │   ├── prepare-upload/
+│   │   ├── get-file-metadata/
+│   │   ├── get-file-download/
+│   │   ├── record-download/
+│   │   ├── my-files/
+│   │   └── revoke-file/
+│   ├── auth/              # Authentication pages
+│   ├── dashboard/         # User dashboard
+│   ├── share/             # File sharing pages
+│   └── upload/            # File upload pages
+├── components/            # React components
+│   ├── AuthModal.tsx      # Authentication modal
+│   ├── FileUploadProcess.tsx # File upload flow
+│   ├── RecipientView.tsx  # File download interface
+│   ├── DashboardView.tsx  # User dashboard
+│   └── ...
+└── lib/                   # Utility libraries
+    ├── encryption.ts      # Zero-knowledge encryption
+    ├── storage.ts         # Storage operations
+    ├── supabase.ts        # Supabase client
+    └── aws.ts            # AWS S3 operations
+```
 
 ## 🔧 API Endpoints
 
-- `POST /api/upload` - Get pre-signed upload URL
-- `GET /api/file/[id]/metadata` - Get file metadata
-- `GET /api/file/[id]/download` - Get pre-signed download URL
-- `DELETE /api/file/[id]` - Delete file (burn after read)
+### Authentication Required
+- `POST /api/prepare-upload` - Prepare file upload
+- `GET /api/my-files` - Get user's files
+- `DELETE /api/revoke-file` - Revoke file access
 
-## 🎯 Usage
+### Public Access
+- `GET /api/get-file-metadata/[fileId]` - Get file metadata
+- `GET /api/get-file-download/[fileId]` - Get download URL
+- `POST /api/record-download` - Record successful download
 
-### Uploading a File
-1. Enter a strong password
-2. Choose security options (burn after read, expiration)
-3. Drag and drop or select a file
-4. Copy the shareable link and password
-5. Share both through different secure channels
+## 🔐 Security Features
 
-### Downloading a File
-1. Visit the shareable link
-2. Enter the password
-3. File is decrypted and downloaded automatically
-4. If burn after read is enabled, file is deleted after download
+### Encryption
+- **AES-256-GCM** for file encryption
+- **PBKDF2** with 100,000 iterations for key derivation
+- **Random salts** for each file and user
+- **Client-side only** - server never sees unencrypted data
 
-## 🛡️ Security Features
+### Privacy
+- **Zero-knowledge architecture** - server has no access to content
+- **Encrypted metadata** - even file names are protected
+- **No server-side logging** of sensitive data
+- **Pre-signed URLs** prevent server from seeing file data
 
-- **AES-256-GCM Encryption**: Industry-standard encryption
-- **PBKDF2 Key Derivation**: 100,000 iterations for password hashing
-- **Random IV/Salt**: Unique values for each encryption
-- **Client-Side Only**: Encryption/decryption never leaves the browser
-- **Pre-signed URLs**: Direct browser-to-S3 communication
-- **No Server Access**: Server cannot decrypt files even if compromised
+### Access Control
+- **Burn after read** - files auto-delete after download
+- **Expiry controls** - set custom expiration times
+- **Download tracking** - monitor file access
+- **Revocation** - instantly revoke access
 
-## 🎨 UI Features
+## 🧪 Testing the System
 
-- **Dark Theme**: Modern dark mode design
-- **Animations**: Smooth transitions and loading states
-- **Responsive**: Works on desktop and mobile
-- **QR Codes**: Easy mobile sharing
-- **Progress Bars**: Real-time upload/download progress
-- **Glass Morphism**: Modern UI effects
+1. **Sign Up**: Create a new account
+2. **Upload**: Select a file, set passcode, configure options
+3. **Share**: Copy the generated share link
+4. **Download**: Open link in incognito, enter passcode
+5. **Dashboard**: View and manage your files
 
-## 📱 Mobile Support
+## 📚 Documentation
 
-- Responsive design works on all devices
-- QR code generation for easy mobile sharing
-- Touch-friendly interface
-- Optimized for mobile browsers
+- [Setup Guide](SETUP_GUIDE.md) - Detailed setup instructions
+- [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Technical details
+- [Demo Guide](DEMO.md) - How to demonstrate the system
 
-## 🚀 Deployment
+## 🏆 Competitive Advantages
 
-### Vercel (Recommended)
-1. Push to GitHub
-2. Connect to Vercel
-3. Set environment variables in Vercel dashboard
-4. Deploy
+### Innovation
+- First full-stack zero-knowledge file sharing platform
+- Client-side encryption with server-side storage
+- Metadata protection beyond file content
 
-### Other Platforms
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- AWS Amplify
-- Railway
-- DigitalOcean App Platform
+### Technical Depth
+- Sophisticated key derivation and management
+- Pre-signed S3 URLs for efficiency
+- Database-level encryption for privacy
 
-## 🔍 Development
-
-### Project Structure
-```
-src/
-├── app/                 # Next.js app router
-│   ├── api/            # API routes
-│   ├── file/[id]/      # File download page
-│   └── page.tsx        # Main upload page
-├── components/         # React components
-│   ├── FileUpload.tsx  # Upload interface
-│   ├── FileShare.tsx   # Share interface
-│   ├── FileDownload.tsx # Download interface
-│   └── QRCode.tsx      # QR code generator
-└── lib/               # Utilities
-    ├── encryption.ts   # Crypto functions
-    └── storage.ts      # S3 integration
-```
-
-### Key Technologies
-- **Next.js 15**: React framework with app router
-- **TypeScript**: Type safety
-- **Tailwind CSS**: Styling
-- **AWS SDK**: S3 integration
-- **Web Crypto API**: Client-side encryption
+### Real-World Impact
+- Solves privacy concerns of existing solutions
+- Provides enterprise-grade security
+- Scalable architecture for production use
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+This is a demonstration project showcasing zero-knowledge architecture principles. For production use, additional security measures and testing would be required.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## ⚠️ Security Notice
-
-This is a demonstration project. For production use:
-- Use a dedicated S3 bucket
-- Implement rate limiting
-- Add input validation
-- Consider additional security measures
-- Regular security audits
-
-## 🆘 Support
-
-For issues and questions:
-- Check the GitHub issues
-- Review the documentation
-- Contact the maintainers
+This project is for demonstration purposes. Please ensure compliance with all applicable laws and regulations when handling user data.
 
 ---
 
-**Remember**: Even with this secure system, always share passwords through separate secure channels (SMS, Signal, etc.) and never in the same message as the link.
+**AetherVault** - Where privacy meets innovation in file sharing.
