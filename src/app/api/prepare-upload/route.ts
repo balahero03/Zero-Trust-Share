@@ -29,11 +29,12 @@ export async function POST(request: NextRequest) {
       encryptedFileName, 
       fileSize, 
       fileSalt, 
+      fileIv,
       burnAfterRead = false, 
       expiryHours = 24 
     } = body
 
-    if (!encryptedFileName || !fileSize || !fileSalt) {
+    if (!encryptedFileName || !fileSize || !fileSalt || !fileIv) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
         encrypted_file_name: encryptedFileName,
         file_size: fileSize,
         file_salt: fileSalt,
+        file_iv: fileIv,
         expires_at: expiresAt,
         burn_after_read: burnAfterRead,
         download_count: 0

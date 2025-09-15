@@ -66,3 +66,4 @@ CREATE POLICY "Users can delete their own files" ON storage.objects
 -- Grant necessary permissions
 GRANT ALL ON shared_files TO authenticated;
 GRANT ALL ON shared_files TO service_role;
+

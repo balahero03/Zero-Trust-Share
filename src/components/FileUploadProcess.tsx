@@ -112,7 +112,7 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
         )
       );
       
-      const { encryptedData, fileSalt } = await encryptFile(selectedFile, passcode);
+      const { encryptedData, fileSalt, iv } = await encryptFile(selectedFile, passcode);
 
       // Step 2: Encrypt metadata (filename) with master key
       setProcessingSteps(prev => 
@@ -145,6 +145,7 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
         encryptedFileName,
         selectedFile.size,
         fileSalt,
+        iv,
         burnAfterRead,
         expiryHours
       );

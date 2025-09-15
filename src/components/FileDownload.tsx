@@ -59,14 +59,14 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
     try {
       // Step 1: Get file metadata
       setDownloadProgress(10);
-      const metadata = await fetch(`/api/file/${fileId}/metadata`).then(res => {
+      const metadata = await fetch(`/api/get-file-metadata/${fileId}`).then(res => {
         if (!res.ok) throw new Error('File not found or expired');
         return res.json();
       });
 
       setFileInfo({
-        name: metadata.originalName,
-        size: metadata.originalSize
+        name: `secure-file-${fileId}`,
+        size: metadata.fileSize
       });
 
       // Step 2: Download encrypted file
@@ -78,7 +78,8 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
       const decryptedBlob = await decryptFile(
         encryptedData,
         key,
-        new Uint8Array(metadata.iv)
+        metadata.fileSalt,
+        new Uint8Array(metadata.fileIv)
       );
 
       // Step 4: Download file
@@ -86,7 +87,7 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
       const url = URL.createObjectURL(decryptedBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = metadata.originalName;
+      a.download = `secure-file-${fileId}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -94,33 +95,21 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
 
       setDownloadProgress(100);
 
-      // Step 5: Handle burn after read
-      if (metadata.burnAfterRead) {
-        setDownloadProgress(95);
-        try {
-          await fetch(`/api/file/${fileId}`, { method: 'DELETE' });
-          setDownloadProgress(100);
-          
-          // Show burn animation
-          setTimeout(() => {
-            setError('🔥 File has been deleted after download (burn after read)');
-            // Add burn effect to the UI
-            const burnEffect = document.createElement('div');
-            burnEffect.className = 'fixed inset-0 pointer-events-none z-50';
-            burnEffect.innerHTML = `
-              <div class="absolute inset-0 bg-gradient-to-r from-red-500/20 via-orange-500/20 to-yellow-500/20 animate-pulse"></div>
-              <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl animate-bounce">🔥</div>
-            `;
-            document.body.appendChild(burnEffect);
-            
-            // Remove burn effect after animation
-            setTimeout(() => {
-              document.body.removeChild(burnEffect);
-            }, 3000);
-          }, 1000);
-        } catch (error) {
-          console.error('Failed to delete file after download:', error);
-        }
+      // Step 5: Record download and handle burn after read
+      try {
+        await fetch('/api/record-download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileId })
+        });
+        setDownloadProgress(100);
+        
+        // Show success message
+        setTimeout(() => {
+          setError('✅ File downloaded successfully!');
+        }, 1000);
+      } catch (error) {
+        console.error('Failed to record download:', error);
       }
 
     } catch (error: unknown) {

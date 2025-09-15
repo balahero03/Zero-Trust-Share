@@ -27,6 +27,7 @@ export async function prepareFileUpload(
   encryptedFileName: string,
   fileSize: number,
   fileSalt: Uint8Array,
+  fileIv: Uint8Array,
   burnAfterRead: boolean = false,
   expiryHours: number = 24
 ): Promise<UploadResponse> {
@@ -48,6 +49,7 @@ export async function prepareFileUpload(
         encryptedFileName,
         fileSize,
         fileSalt: Array.from(fileSalt),
+        fileIv: Array.from(fileIv),
         burnAfterRead,
         expiryHours
       })
@@ -100,6 +102,7 @@ export async function uploadFileData(
 export async function getFileMetadata(fileId: string): Promise<{
   fileSize: number;
   fileSalt: Uint8Array;
+  fileIv: number[];
   burnAfterRead: boolean;
   downloadCount: number;
 }> {
@@ -119,6 +122,7 @@ export async function getFileMetadata(fileId: string): Promise<{
     return {
       fileSize: data.fileSize,
       fileSalt: new Uint8Array(data.fileSalt),
+      fileIv: data.fileIv,
       burnAfterRead: data.burnAfterRead,
       downloadCount: data.downloadCount
     };

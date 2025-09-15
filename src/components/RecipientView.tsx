@@ -11,6 +11,7 @@ interface RecipientViewProps {
 interface FileMetadata {
   fileSize: number;
   fileSalt: Uint8Array;
+  fileIv: number[];
   burnAfterRead: boolean;
   downloadCount: number;
 }
@@ -67,12 +68,11 @@ export function RecipientView({ fileId }: RecipientViewProps) {
       const encryptedData = await downloadFile(fileId);
       
       // Decrypt file using passcode and salt
-      // Note: In a real implementation, the IV would be stored with the file
       const decryptedBlob = await decryptFile(
         encryptedData,
         passcode,
         fileMetadata.fileSalt,
-        new Uint8Array(12) // Placeholder IV - in production this would be stored
+        new Uint8Array(fileMetadata.fileIv)
       );
 
       setFileContent(decryptedBlob);
