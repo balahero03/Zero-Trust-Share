@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { deriveMasterKey } from '@/lib/encryption';
 import { SuccessModal } from './SuccessModal';
+import { ResetPasswordModal } from './ResetPasswordModal';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,8 +226,8 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
           </button>
         </form>
 
-        {/* Footer */}
-        <div className="mt-6 text-center">
+          {/* Footer */}
+        <div className="mt-6 text-center space-y-3">
           <p className="text-text-secondary text-sm">
             {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
             <button
@@ -235,6 +237,18 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
               {mode === 'login' ? 'Sign up' : 'Sign in'}
             </button>
           </p>
+          
+          {mode === 'login' && (
+            <p className="text-text-secondary text-sm">
+              Forgot your password?{' '}
+              <button
+                onClick={() => setShowResetPasswordModal(true)}
+                className="text-electric-blue hover:text-electric-blue-light font-medium transition-colors"
+              >
+                Reset it here
+              </button>
+            </p>
+          )}
         </div>
       </div>
 
@@ -248,6 +262,16 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
         title="Check Your Email!"
         message={successMessage}
         email={email}
+      />
+
+      {/* Reset Password Modal */}
+      <ResetPasswordModal
+        isOpen={showResetPasswordModal}
+        onClose={() => setShowResetPasswordModal(false)}
+        onSuccess={() => {
+          setShowResetPasswordModal(false);
+          // Optionally close the main modal or show success message
+        }}
       />
     </div>
   );

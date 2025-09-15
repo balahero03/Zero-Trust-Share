@@ -68,7 +68,7 @@ export default function AuthPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">ZeroVault</h1>
+              <h1 className="text-2xl font-bold text-white">AetherVault</h1>
               <p className="text-sm text-gray-300">Zero-Trust File Sharing</p>
             </div>
           </Link>
@@ -200,7 +200,7 @@ export default function AuthPage() {
           </form>
 
           {/* Additional Options */}
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
             <p className="text-gray-300 text-sm">
               {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
               <button
@@ -210,6 +210,18 @@ export default function AuthPage() {
                 {mode === 'login' ? 'Sign up' : 'Sign in'}
               </button>
             </p>
+            
+            {mode === 'login' && (
+              <p className="text-gray-300 text-sm">
+                Forgot your password?{' '}
+                <Link
+                  href="/auth/reset-password"
+                  className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
+                >
+                  Reset it here
+                </Link>
+              </p>
+            )}
           </div>
 
           {/* Demo Notice */}

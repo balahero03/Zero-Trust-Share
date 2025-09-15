@@ -41,13 +41,25 @@ export function FileUploadProcess({ isAuthenticated, onAuthSuccess }: FileUpload
   const handleFileSelect = useCallback((file: File) => {
     setSelectedFile(file);
     
-    if (!isAuthenticated) {
-      setState('auth-gated');
-      setShowAuthModal(true);
-    } else {
-      setState('config');
-    }
-  }, [isAuthenticated]);
+    // Always check authentication status from Supabase
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setState('auth-gated');
+          setShowAuthModal(true);
+        } else {
+          setState('config');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setState('auth-gated');
+        setShowAuthModal(true);
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();

@@ -102,7 +102,7 @@ export default function SharePage() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">ZeroVault</h1>
+                <h1 className="text-2xl font-bold text-white">AetherVault</h1>
                 <p className="text-sm text-gray-300">Zero-Trust File Sharing</p>
               </div>
             </Link>
