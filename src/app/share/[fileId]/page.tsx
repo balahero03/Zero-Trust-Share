@@ -189,7 +189,7 @@ export default function SharePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
-                <p>Don't use weak or predictable passwords</p>
+                <p>Don&apos;t use weak or predictable passwords</p>
               </div>
             </div>
           </div>

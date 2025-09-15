@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 export default function TestPage() {
@@ -17,7 +18,7 @@ export default function TestPage() {
   const runTests = async () => {
     // Test 1: Supabase Connection
     try {
-      const { data, error } = await supabase.from('shared_files').select('count').limit(1);
+      const { error } = await supabase.from('shared_files').select('count').limit(1);
       if (error) {
         setTests(prev => ({
           ...prev,
@@ -55,7 +56,7 @@ export default function TestPage() {
 
     // Test 3: Database Schema
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('shared_files')
         .select('id')
         .limit(1);
@@ -152,7 +153,7 @@ export default function TestPage() {
             
             <div>
               <h3 className="font-medium text-text-primary mb-2">If All Tests Pass:</h3>
-              <p>1. Go to <a href="/" className="text-electric-blue hover:underline">the main page</a></p>
+              <p>1. Go to <Link href="/" className="text-electric-blue hover:underline">the main page</Link></p>
               <p>2. Test the signup and email confirmation flow</p>
             </div>
           </div>

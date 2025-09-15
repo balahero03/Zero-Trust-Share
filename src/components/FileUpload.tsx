@@ -45,14 +45,14 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
     if (files.length > 0) {
       handleFileSelect(files[0]);
     }
-  }, []);
+  }, [handleFileSelect]);
 
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       handleFileSelect(files[0]);
     }
-  }, []);
+  }, [handleFileSelect]);
 
   const handleFileSelect = useCallback(async (file: File) => {
     setIsUploading(true);

@@ -35,6 +35,7 @@ export function QRCode({ url, size = 200 }: QRCodeProps) {
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="bg-white p-4 rounded-lg shadow-lg">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src={qrDataUrl} 
           alt="QR Code" 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+// import { useState } from 'react'; // Unused import
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -53,7 +53,7 @@ export function SuccessModal({ isOpen, onClose, title, message, email }: Success
           <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
             <li>Check your email inbox</li>
             <li>Click the confirmation link</li>
-            <li>You'll be redirected back to AetherVault</li>
+            <li>You&apos;ll be redirected back to AetherVault</li>
             <li>Start sharing files securely!</li>
           </ol>
         </div>
@@ -61,7 +61,7 @@ export function SuccessModal({ isOpen, onClose, title, message, email }: Success
         {/* Help Text */}
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-6">
           <p className="text-sm text-blue-400">
-            <strong>Can't find the email?</strong> Check your spam folder or wait a few minutes for delivery.
+            <strong>Can&apos;t find the email?</strong> Check your spam folder or wait a few minutes for delivery.
           </p>
         </div>
 

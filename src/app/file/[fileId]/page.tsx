@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { FileDownload } from '@/components/FileDownload';
 
 export default function FileDownloadPage() {
@@ -43,12 +44,12 @@ export default function FileDownloadPage() {
             </div>
             
             <div className="flex space-x-4">
-              <a
+              <Link
                 href="/"
                 className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
               >
                 Upload File
-              </a>
+              </Link>
             </div>
           </div>
         </div>

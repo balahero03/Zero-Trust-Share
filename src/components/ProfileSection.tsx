@@ -7,6 +7,13 @@ interface User {
   id: string;
   email: string;
   created_at: string;
+<<<<<<< HEAD
+=======
+  email_confirmed_at: string | null;
+  last_sign_in_at: string | null;
+  app_metadata: unknown;
+  user_metadata: unknown;
+>>>>>>> 2db990ee7db075780762571dbde6a4fd329fc525
 }
 
 interface ProfileSectionProps {

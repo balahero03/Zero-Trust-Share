@@ -10,7 +10,7 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const router = useRouter();
+  // const router = useRouter(); // Unused variable
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +80,7 @@ export default function ResetPasswordPage() {
               <h2 className="text-2xl font-bold text-text-primary mb-4">Check Your Email!</h2>
               
               <p className="text-text-secondary mb-6">
-                We've sent password reset instructions to <span className="text-electric-blue font-medium">{email}</span>. 
+                We&apos;ve sent password reset instructions to <span className="text-electric-blue font-medium">{email}</span>. 
                 Please check your inbox and follow the link to reset your password.
               </p>
 
@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
-                    <h4 className="text-sm font-medium text-electric-blue mb-1">Didn't receive the email?</h4>
+                    <h4 className="text-sm font-medium text-electric-blue mb-1">Didn&apos;t receive the email?</h4>
                     <p className="text-sm text-text-secondary">
                       Check your spam folder or try again. The link will expire in 1 hour.
                     </p>
@@ -220,7 +220,7 @@ export default function ResetPasswordPage() {
             </p>
             
             <p className="text-text-secondary text-sm">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link
                 href="/auth?mode=signup"
                 className="text-electric-blue hover:text-electric-blue-light font-medium transition-colors"

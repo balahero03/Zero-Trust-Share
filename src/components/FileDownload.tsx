@@ -24,7 +24,7 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
   // Extract file ID and key from URL if present (fallback)
   useEffect(() => {
     if (typeof window !== 'undefined' && !initialFileId && !initialKey) {
-      const urlParams = new URLSearchParams(window.location.search);
+      // const urlParams = new URLSearchParams(window.location.search); // Unused variable
       const hash = window.location.hash;
       
       // Extract file ID from URL path
@@ -123,9 +123,9 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
         }
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Download failed:', error);
-      setError(error.message || 'Download failed. Please check your file ID and decryption key.');
+      setError(error instanceof Error ? error.message : 'Download failed. Please check your file ID and decryption key.');
     } finally {
       setIsDownloading(false);
       setDownloadProgress(0);

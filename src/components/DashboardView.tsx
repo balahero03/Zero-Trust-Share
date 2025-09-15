@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getUserFiles, revokeFile } from '@/lib/storage';
-import { decryptMetadata, deriveMasterKey } from '@/lib/encryption';
+import { deriveMasterKey } from '@/lib/encryption';
 
 interface SharedFile {
   id: string;
@@ -17,6 +17,7 @@ interface SharedFile {
 
 interface DashboardViewProps {
   // In a real app, this would come from props or context
+  [key: string]: unknown;
 }
 
 export function DashboardView({}: DashboardViewProps) {
@@ -38,7 +39,7 @@ export function DashboardView({}: DashboardViewProps) {
         if (masterKeySalt) {
           // For demo purposes, we'll use a placeholder password
           // In production, you'd store the master key more securely
-          const { masterKey } = await deriveMasterKey('demo-password', new Uint8Array(JSON.parse(masterKeySalt)));
+          await deriveMasterKey('demo-password', new Uint8Array(JSON.parse(masterKeySalt)));
           
           const decryptedFiles = await Promise.all(
             files.map(async (file) => {

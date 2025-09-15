@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { AuthModal } from './AuthModal';
 import { ProfileSection } from './ProfileSection';
@@ -77,7 +78,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             {/* Logo */}
-            <div className="flex items-center space-x-3 group">
+            <Link href="/" className="flex items-center space-x-3 group cursor-pointer">
               <div className="w-10 h-10 bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-lg flex items-center justify-center animate-pulse-glow group-hover:animate-bounce">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -89,7 +90,7 @@ export function Layout({ children }: LayoutProps) {
                 </h1>
                 <p className="text-sm text-text-secondary">Zero-Trust File Sharing</p>
               </div>
-            </div>
+            </Link>
             
             {/* Navigation & Auth Buttons */}
             <div className="flex items-center space-x-3">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 interface ProjectStats {
@@ -67,12 +68,12 @@ export default function ProjectPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-text-primary mb-4">Authentication Required</h2>
           <p className="text-text-secondary mb-6">Please log in to access project details.</p>
-          <a
+          <Link
             href="/"
             className="px-6 py-3 bg-electric-blue hover:bg-electric-blue-dark text-white font-medium rounded-lg transition-colors"
           >
             Go to Home
-          </a>
+          </Link>
         </div>
       </div>
     );

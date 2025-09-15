@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ export default function EmailConfirmPage() {
 
   useEffect(() => {
     handleEmailConfirmation();
-  }, []);
+  }, [handleEmailConfirmation]);
 
   useEffect(() => {
     if (status === 'success' && countdown > 0) {
@@ -27,7 +27,7 @@ export default function EmailConfirmPage() {
     }
   }, [status, countdown, router]);
 
-  const handleEmailConfirmation = async () => {
+  const handleEmailConfirmation = useCallback(async () => {
     try {
       // Get URL parameters
       const tokenHash = searchParams.get('token_hash');
@@ -94,12 +94,12 @@ export default function EmailConfirmPage() {
 
       setStatus('error');
       setMessage('Email confirmation failed. Please try again.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Unexpected error:', err);
       setStatus('error');
-      setMessage(`Email confirmation failed: ${err.message || 'Please try again.'}`);
+      setMessage(`Email confirmation failed: ${err instanceof Error ? err.message : 'Please try again.'}`);
     }
-  };
+  }, [searchParams]);
 
   const getStatusIcon = () => {
     switch (status) {
