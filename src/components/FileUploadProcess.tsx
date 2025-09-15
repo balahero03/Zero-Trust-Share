@@ -20,7 +20,7 @@ interface ProcessingStep {
   completed: boolean;
 }
 
-export function FileUploadProcess({ isAuthenticated, onAuthSuccess }: FileUploadProcessProps) {
+export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
   const [state, setState] = useState<UploadState>('idle');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [passcode, setPasscode] = useState('');
@@ -109,7 +109,7 @@ export function FileUploadProcess({ isAuthenticated, onAuthSuccess }: FileUpload
         )
       );
       
-      const { encryptedData, iv, fileSalt } = await encryptFile(selectedFile, passcode);
+      const { encryptedData, fileSalt } = await encryptFile(selectedFile, passcode);
 
       // Step 2: Encrypt metadata (filename) with master key
       setProcessingSteps(prev => 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 export default function ConfigPage() {
@@ -21,7 +22,7 @@ export default function ConfigPage() {
   const checkConfiguration = async () => {
     try {
       // Test Supabase connection
-      const { data, error } = await supabase.from('shared_files').select('count').limit(1);
+      const { error } = await supabase.from('shared_files').select('count').limit(1);
       
       if (error) {
         setConfigStatus({
@@ -175,12 +176,12 @@ export default function ConfigPage() {
               🔗 Open Supabase Dashboard
             </a>
             
-            <a
+            <Link
               href="/"
               className="px-4 py-2 bg-white/10 hover:bg-white/20 text-text-primary rounded-lg transition-colors"
             >
               🏠 Back to Home
-            </a>
+            </Link>
           </div>
         </div>
       </div>

@@ -9,8 +9,8 @@ interface UserProfile {
   created_at: string;
   email_confirmed_at: string | null;
   last_sign_in_at: string | null;
-  app_metadata: any;
-  user_metadata: any;
+  app_metadata: unknown;
+  user_metadata: unknown;
 }
 
 interface SupabaseProjectInfo {

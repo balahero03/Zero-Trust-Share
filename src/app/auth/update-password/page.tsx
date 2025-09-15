@@ -15,7 +15,7 @@ export default function UpdatePasswordPage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   
   const router = useRouter();
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams(); // Unused variable
 
   useEffect(() => {
     const checkSession = async () => {
@@ -149,7 +149,7 @@ export default function UpdatePasswordPage() {
               <h2 className="text-2xl font-bold text-text-primary mb-4">Password Updated!</h2>
               
               <p className="text-text-secondary mb-6">
-                Your password has been successfully updated! You're now signed in and ready to continue.
+                Your password has been successfully updated! You&apos;re now signed in and ready to continue.
               </p>
 
               <div className="bg-success/10 border border-success/20 rounded-lg p-4 mb-6">
@@ -279,7 +279,7 @@ export default function UpdatePasswordPage() {
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-text-primary mb-2">Set New Password</h2>
             <p className="text-text-secondary text-sm">
-              Enter your new password below. Make sure it's secure and easy to remember.
+              Enter your new password below. Make sure it&apos;s secure and easy to remember.
             </p>
           </div>
 

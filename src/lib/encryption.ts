@@ -97,15 +97,15 @@ export async function deriveFileKey(passcode: string, salt: Uint8Array): Promise
 }
 
 // Import key from raw bytes
-async function importKeyFromRaw(rawKey: ArrayBuffer): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
-    'raw',
-    rawKey,
-    { name: 'AES-GCM' },
-    false,
-    ['encrypt', 'decrypt']
-  );
-}
+// async function importKeyFromRaw(rawKey: ArrayBuffer): Promise<CryptoKey> {
+//   return crypto.subtle.importKey(
+//     'raw',
+//     rawKey,
+//     { name: 'AES-GCM' },
+//     false,
+//     ['encrypt', 'decrypt']
+//   );
+// }
 
 /**
  * Encrypt a file using AES-256-GCM with PBKDF2-derived file key
