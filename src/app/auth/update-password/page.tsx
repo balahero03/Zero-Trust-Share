@@ -85,18 +85,13 @@ export default function UpdatePasswordPage() {
   };
 
   const handleSuccessRedirect = async () => {
-    // Ensure session is properly established before redirecting
+    // Sign out the user to force fresh authentication after password reset
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Keep the user signed in and redirect directly to dashboard
-        router.push('/dashboard?message=password-updated');
-      } else {
-        // If no session, redirect to home with a message
-        router.push('/?message=password-updated-please-signin');
-      }
+      await supabase.auth.signOut();
+      // Redirect to home with a message to sign in again
+      router.push('/?message=password-updated-please-signin');
     } catch (error) {
-      console.error('Session check error:', error);
+      console.error('Sign out error:', error);
       router.push('/?message=password-updated-please-signin');
     }
   };
@@ -149,7 +144,7 @@ export default function UpdatePasswordPage() {
               <h2 className="text-2xl font-bold text-text-primary mb-4">Password Updated!</h2>
               
               <p className="text-text-secondary mb-6">
-                Your password has been successfully updated! You're now signed in and ready to continue.
+                Your password has been successfully updated! For security reasons, please sign in again with your new password.
               </p>
 
               <div className="bg-success/10 border border-success/20 rounded-lg p-4 mb-6">
@@ -170,7 +165,7 @@ export default function UpdatePasswordPage() {
                 onClick={handleSuccessRedirect}
                 className="w-full px-6 py-4 bg-electric-blue hover:bg-electric-blue-dark text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-electric-blue/25"
               >
-                Continue to Dashboard
+                Sign In with New Password
               </button>
             </div>
           </div>

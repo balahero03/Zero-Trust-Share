@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { AuthModal } from './AuthModal';
+import { ProfileSection } from './ProfileSection';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -108,23 +109,12 @@ export function Layout({ children }: LayoutProps) {
                     Download
                   </a>
                   <a
-                    href="/dashboard"
-                    className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
-                  >
-                    Dashboard
-                  </a>
-                  <a
                     href="/project"
                     className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
                   >
                     Project
                   </a>
-                  <button
-                    onClick={handleLogout}
-                    className="px-4 py-2 text-sm font-medium text-text-primary bg-white/10 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
-                  >
-                    Logout
-                  </button>
+                  <ProfileSection onLogout={handleLogout} />
                 </>
               )}
             </div>
