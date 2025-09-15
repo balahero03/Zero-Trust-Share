@@ -1,6 +1,6 @@
 /**
  * Storage utilities for encrypted file upload and download
- * Handles AWS S3 integration with pre-signed URLs
+ * Handles generic backend integration
  */
 
 import { generateFileId } from './encryption';
