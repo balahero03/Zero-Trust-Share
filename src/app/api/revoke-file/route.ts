@@ -1,11 +1,10 @@
 /**
  * API Route: /api/revoke-file
- * Purpose: Revoke access to a file by deleting it from S3 and database
+ * Purpose: Revoke access to a file by deleting it from Supabase Storage and database
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { deleteFileFromBlob } from '@/lib/azure'
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -34,7 +33,7 @@ export async function DELETE(request: NextRequest) {
     // Get file record and verify ownership
     const { data: fileRecord, error: fetchError } = await supabaseAdmin
       .from('shared_files')
-      .select('s3_key, owner_id')
+      .select('file_name, owner_id')
       .eq('id', fileId)
       .single()
 
@@ -48,11 +47,18 @@ export async function DELETE(request: NextRequest) {
     }
 
     try {
-      // Delete from Azure Blob Storage
-      await deleteFileFromBlob(fileRecord.s3_key)
-    } catch (blobError) {
-      console.error('Blob delete error:', blobError)
-      // Continue with database deletion even if blob deletion fails
+        // Delete from Supabase Storage
+        const { error: storageError } = await supabaseAdmin.storage
+          .from('aethervault-files')
+          .remove([fileRecord.file_name])
+
+      if (storageError) {
+        console.error('Storage delete error:', storageError)
+        // Continue with database deletion even if storage deletion fails
+      }
+    } catch (storageError) {
+      console.error('Storage delete error:', storageError)
+      // Continue with database deletion even if storage deletion fails
     }
 
     // Delete from database

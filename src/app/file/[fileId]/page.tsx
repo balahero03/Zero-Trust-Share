@@ -26,13 +26,13 @@ export default function FileDownloadPage() {
   }, [params.fileId]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <header className="border-b border-white/10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -61,14 +61,14 @@ export default function FileDownloadPage() {
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Download
-            <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-electric-blue to-electric-blue-light bg-clip-text text-transparent">
               Secure File
             </span>
           </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Your file is ready to download. The decryption key has been extracted from the link.
             <br />
-            <span className="text-purple-400 font-semibold">Your data is safe with us.</span>
+            <span className="text-electric-blue font-semibold">Your data is safe with us.</span>
           </p>
         </div>
 

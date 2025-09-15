@@ -27,7 +27,7 @@ export function QRCode({ url, size = 200 }: QRCodeProps) {
   if (!qrDataUrl) {
     return (
       <div className="flex items-center justify-center" style={{ width: size, height: size }}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-electric-blue"></div>
       </div>
     );
   }

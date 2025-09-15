@@ -130,7 +130,7 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
       
       const { encryptedData: encryptedFileName } = await encryptMetadata(selectedFile.name, masterKey);
 
-      // Step 3: Prepare upload and upload to S3
+      // Step 3: Prepare upload and upload to Supabase Storage
       setProcessingSteps(prev => 
         prev.map((step, index) => 
           index === 2 ? { ...step, completed: true } : step
@@ -141,7 +141,7 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
                          linkExpiry === '24h' ? 24 : 
                          linkExpiry === '7d' ? 168 : 720;
 
-      const { uploadUrl, fileId } = await prepareFileUpload(
+      const { fileName, fileId } = await prepareFileUpload(
         encryptedFileName,
         selectedFile.size,
         fileSalt,
@@ -149,7 +149,7 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
         expiryHours
       );
 
-      await uploadFileData(uploadUrl, encryptedData);
+      await uploadFileData(fileName, encryptedData);
 
       // Step 4: Finalize
       setProcessingSteps(prev => 

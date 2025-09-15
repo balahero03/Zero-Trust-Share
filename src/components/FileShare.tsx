@@ -53,7 +53,7 @@ export function FileShare({ file, onUploadAnother }: FileShareProps) {
       {/* File Info */}
       <div className="bg-white/5 rounded-xl p-6 border border-white/10">
         <div className="flex items-center space-x-4 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+          <div className="w-12 h-12 bg-gradient-to-r from-electric-blue to-electric-blue-light rounded-lg flex items-center justify-center">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -115,7 +115,7 @@ export function FileShare({ file, onUploadAnother }: FileShareProps) {
           </label>
           <button
             onClick={() => setShowQR(!showQR)}
-            className="px-3 py-1 text-xs font-medium text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-colors"
+            className="px-3 py-1 text-xs font-medium text-electric-blue hover:text-electric-blue-light bg-electric-blue/10 hover:bg-electric-blue/20 rounded-lg transition-colors"
           >
             {showQR ? 'Hide QR' : 'Show QR'}
           </button>
@@ -133,7 +133,7 @@ export function FileShare({ file, onUploadAnother }: FileShareProps) {
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               copied
                 ? 'bg-green-500 text-white'
-                : 'bg-purple-500 hover:bg-purple-600 text-white'
+                : 'bg-electric-blue hover:bg-electric-blue-dark text-white'
             }`}
           >
             {copied ? (
@@ -190,7 +190,7 @@ export function FileShare({ file, onUploadAnother }: FileShareProps) {
         </button>
         <button
           onClick={() => window.open(file.shareUrl, '_blank')}
-          className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-colors"
+          className="flex-1 px-6 py-3 bg-gradient-to-r from-electric-blue to-electric-blue-light hover:from-electric-blue-dark hover:to-electric-blue text-white rounded-lg font-medium transition-colors"
         >
           Test Download Link
         </button>

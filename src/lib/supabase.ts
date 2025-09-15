@@ -43,7 +43,7 @@ export const supabaseAdmin = createClient(
 export interface SharedFile {
   id: string
   owner_id: string
-  s3_key: string
+  file_name: string
   encrypted_file_name: string
   file_size: number
   file_salt: string

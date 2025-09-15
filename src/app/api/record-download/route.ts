@@ -5,7 +5,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { deleteFileFromS3 } from '@/lib/aws'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Get file record
     const { data: fileRecord, error: fetchError } = await supabaseAdmin
       .from('shared_files')
-      .select('s3_key, burn_after_read, download_count')
+      .select('file_name, burn_after_read, download_count')
       .eq('id', fileId)
       .single()
 
@@ -44,8 +43,14 @@ export async function POST(request: NextRequest) {
     // If burn_after_read is true, delete the file
     if (fileRecord.burn_after_read) {
       try {
-        // Delete from S3
-        await deleteFileFromS3(fileRecord.s3_key)
+        // Delete from Supabase Storage
+        const { error: storageError } = await supabaseAdmin.storage
+          .from('aethervault-files')
+          .remove([fileRecord.file_name])
+        
+        if (storageError) {
+          console.error('Storage delete error:', storageError)
+        }
         
         // Delete from database
         await supabaseAdmin

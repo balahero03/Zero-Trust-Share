@@ -1,11 +1,10 @@
 /**
  * API Route: /api/get-file-download/[fileId]
- * Purpose: Generate pre-signed download URL for encrypted file
+ * Purpose: Get file information for download from Supabase Storage
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { generateDownloadUrl } from '@/lib/azure'
 
 export async function GET(
   request: NextRequest,
@@ -21,7 +20,7 @@ export async function GET(
     // Query the shared_files table
     const { data: fileRecord, error } = await supabaseAdmin
       .from('shared_files')
-      .select('s3_key, expires_at, burn_after_read, download_count')
+      .select('file_name, expires_at, burn_after_read, download_count')
       .eq('id', fileId)
       .single()
 
@@ -39,11 +38,8 @@ export async function GET(
       return NextResponse.json({ error: 'File has been consumed' }, { status: 410 })
     }
 
-    // Generate pre-signed download URL (expires in 1 hour)
-    const downloadUrl = await generateDownloadUrl(fileRecord.s3_key, 3600)
-
     return NextResponse.json({
-      downloadUrl
+      fileName: fileRecord.file_name
     })
 
   } catch (error) {

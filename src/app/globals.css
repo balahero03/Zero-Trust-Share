@@ -31,17 +31,17 @@ body {
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
-  50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.8); }
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 191, 255, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(0, 191, 255, 0.8); }
 }
 
 @keyframes pulse-glow {
   0%, 100% { 
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
     transform: scale(1);
   }
   50% { 
-    box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
+    box-shadow: 0 0 40px rgba(0, 191, 255, 0.8);
     transform: scale(1.05);
   }
 }
@@ -150,12 +150,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.5);
+  background: rgba(0, 191, 255, 0.5);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.7);
+  background: rgba(0, 191, 255, 0.7);
 }
 
 /* Glass morphism effect */
@@ -167,7 +167,7 @@ body {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #a855f7, #ec4899);
+  background: linear-gradient(135deg, #00BFFF, #33CCFF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

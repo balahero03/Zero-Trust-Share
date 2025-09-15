@@ -158,7 +158,7 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
           value={fileId}
           onChange={(e) => setFileId(e.target.value)}
           placeholder="Enter the file ID from the share link"
-          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent font-mono"
           disabled={isDownloading}
         />
       </div>
@@ -174,7 +174,7 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
           value={key}
           onChange={(e) => setKey(e.target.value)}
           placeholder="Enter the decryption key from the shareable link"
-          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent font-mono text-sm"
           disabled={isDownloading}
         />
       </div>
@@ -217,7 +217,7 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
           </div>
           <div className="w-full bg-white/20 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-electric-blue to-electric-blue-light h-2 rounded-full transition-all duration-300"
               style={{ width: `${downloadProgress}%` }}
             />
           </div>
@@ -228,7 +228,7 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
       <button
         onClick={handleDownload}
         disabled={isDownloading || !fileId.trim() || !key.trim()}
-        className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+        className="w-full px-6 py-4 bg-gradient-to-r from-electric-blue to-electric-blue-light hover:from-electric-blue-dark hover:to-electric-blue disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
       >
         {isDownloading ? (
           <div className="flex items-center justify-center space-x-2">

@@ -128,8 +128,8 @@ export default function ProjectPage() {
                   <p className="text-text-secondary text-sm">Storage Used</p>
                   <p className="text-3xl font-bold text-text-primary">0 MB</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-electric-blue/10 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
                   </svg>
                 </div>
@@ -283,8 +283,8 @@ export default function ProjectPage() {
               rel="noopener noreferrer"
               className="flex items-center p-4 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
             >
-              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center mr-4">
-                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-electric-blue/10 rounded-lg flex items-center justify-center mr-4">
+                <svg className="w-5 h-5 text-electric-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
