@@ -12,21 +12,6 @@ export default function EmailConfirmPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    handleEmailConfirmation();
-  }, [handleEmailConfirmation]);
-
-  useEffect(() => {
-    if (status === 'success' && countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (status === 'success' && countdown === 0) {
-      router.push('/');
-    }
-  }, [status, countdown, router]);
-
   const handleEmailConfirmation = useCallback(async () => {
     try {
       // Get URL parameters
@@ -100,6 +85,21 @@ export default function EmailConfirmPage() {
       setMessage(`Email confirmation failed: ${err instanceof Error ? err.message : 'Please try again.'}`);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    handleEmailConfirmation();
+  }, [handleEmailConfirmation]);
+
+  useEffect(() => {
+    if (status === 'success' && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (status === 'success' && countdown === 0) {
+      router.push('/');
+    }
+  }, [status, countdown, router]);
 
   const getStatusIcon = () => {
     switch (status) {
