@@ -1,0 +1,21 @@
+# 🏆 Complete .env.local Configuration for Zero-Trust-Share
+# Copy this entire content to your .env.local file
+
+# Supabase Credentials (Replace with your actual Supabase values)
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your_anon_key_here"
+SUPABASE_SERVICE_ROLE_KEY="your_service_role_key_here"
+
+# Next.js Configuration
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# 🏆 SMS Passcode System Configuration
+# Twilio SMS Service (Your exact credentials)
+
+
+# SMS Security Settings (Optional - uses defaults if not set)
+SMS_RATE_LIMIT_MINUTES=5
+MAX_SMS_ATTEMPTS=3
+
+# Development Settings
+NODE_ENV="development"

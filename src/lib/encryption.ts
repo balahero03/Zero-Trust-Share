@@ -174,20 +174,58 @@ export async function decryptFile(
   iv: Uint8Array
 ): Promise<Blob> {
   try {
+    console.log('Starting decryption with:', {
+      encryptedDataSize: encryptedData.byteLength,
+      passcodeLength: filePasscode.length,
+      saltLength: fileSalt.length,
+      ivLength: iv.length
+    });
+
+    // Validate inputs
+    if (!filePasscode || filePasscode.length === 0) {
+      throw new Error('Passcode is required for decryption');
+    }
+    
+    if (!fileSalt || fileSalt.length === 0) {
+      console.error('File salt validation failed:', { fileSalt, type: typeof fileSalt, length: fileSalt?.length });
+      throw new Error('File salt is required for decryption');
+    }
+    
+    if (!iv || iv.length === 0) {
+      console.error('IV validation failed:', { iv, type: typeof iv, length: iv?.length });
+      throw new Error('Initialization vector is required for decryption');
+    }
+
     // Derive file key from passcode and salt
+    console.log('Deriving file key...');
     const fileKey = await deriveFileKey(filePasscode, fileSalt);
+    console.log('File key derived successfully');
 
     // Decrypt the data
+    console.log('Starting decryption...');
     const decryptedData = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       fileKey,
       encryptedData
     );
+    console.log('Decryption successful, decrypted size:', decryptedData.byteLength);
 
     // Return as Blob
     return new Blob([decryptedData]);
   } catch (error) {
     console.error('Decryption failed:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.name === 'OperationError') {
+        throw new Error('Decryption failed: Invalid passcode or corrupted data. Please check your passcode and try again.');
+      } else if (error.name === 'InvalidAccessError') {
+        throw new Error('Decryption failed: Invalid key or data format. Please contact support.');
+      } else {
+        throw new Error(`Decryption failed: ${error.message}`);
+      }
+    }
+    
     throw new Error('Failed to decrypt file. Please check your passcode.');
   }
 }
@@ -221,7 +259,7 @@ export async function encryptMetadata(
     return {
       encryptedData: arrayBufferToBase64(encryptedData),
       iv,
-      ivBase64: arrayBufferToBase64(iv)
+      ivBase64: btoa(String.fromCharCode(...iv))
     };
   } catch (error) {
     console.error('Metadata encryption failed:', error);

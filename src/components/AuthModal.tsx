@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { deriveMasterKey } from '@/lib/encryption';
 import { initializeMasterKey } from '@/lib/auth-utils';
 import { SuccessModal } from './SuccessModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
+import { validateInvitationToken, autoAcceptInvitations } from '@/lib/invitation-utils';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -26,6 +27,36 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [invitationToken, setInvitationToken] = useState<string | null>(null);
+  const [invitationInfo, setInvitationInfo] = useState<any>(null);
+
+  // Check for invitation token in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('invitation');
+      if (token) {
+        setInvitationToken(token);
+        checkInvitation(token);
+      }
+    }
+  }, []);
+
+  const checkInvitation = async (token: string) => {
+    try {
+      const response = await fetch(`/api/verify-invitation?token=${token}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.valid) {
+          setInvitationInfo(data.invitation);
+          setEmail(data.invitation.recipientEmail);
+          setMode('signup'); // Force signup mode for invitations
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check invitation:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,12 +103,20 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
 
         // Check if email confirmation is required
         if (data.user && !data.user.email_confirmed_at) {
+          // Auto-accept any pending invitations for this email
+          if (data.user.id) {
+            await autoAcceptInvitations(email, data.user.id);
+          }
+          
           // Show success message with email confirmation instructions
           setError('');
           setIsLoading(false);
           
-          // Show success modal
-          setSuccessMessage('Account created successfully! Please check your email and click the confirmation link to activate your account.');
+          const message = invitationInfo 
+            ? `Welcome to AetherVault! Please check your email and click the confirmation link. Once confirmed, you'll have access to the file shared by ${invitationInfo.senderName}.`
+            : 'Account created successfully! Please check your email and click the confirmation link to activate your account.';
+          
+          setSuccessMessage(message);
           setShowSuccessModal(true);
           return;
         }
@@ -123,9 +162,16 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
       <div className="bg-slate-darker border border-white/10 rounded-2xl p-8 w-full max-w-md mx-4 animate-scale-in">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-text-primary">
-            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-text-primary">
+              {invitationInfo ? 'Join AetherVault' : mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            </h2>
+            {invitationInfo && (
+              <p className="text-sm text-text-secondary mt-1">
+                Invited by {invitationInfo.senderName} to access "{invitationInfo.fileName}"
+              </p>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="text-text-secondary hover:text-text-primary transition-colors"
@@ -136,29 +182,31 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex mb-6 bg-white/5 rounded-lg p-1">
-          <button
-            onClick={() => setMode('login')}
-            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-300 ${
-              mode === 'login'
-                ? 'bg-electric-blue text-white shadow-lg'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setMode('signup')}
-            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-300 ${
-              mode === 'signup'
-                ? 'bg-electric-blue text-white shadow-lg'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Sign Up
-          </button>
-        </div>
+        {/* Tabs - Hide if invitation forces signup */}
+        {!invitationInfo && (
+          <div className="flex mb-6 bg-white/5 rounded-lg p-1">
+            <button
+              onClick={() => setMode('login')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-300 ${
+                mode === 'login'
+                  ? 'bg-electric-blue text-white shadow-lg'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setMode('signup')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-300 ${
+                mode === 'signup'
+                  ? 'bg-electric-blue text-white shadow-lg'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Sign Up
+            </button>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -192,6 +240,7 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
               placeholder="Enter your email"
+              disabled={!!invitationInfo}
               required
             />
           </div>

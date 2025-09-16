@@ -105,7 +105,7 @@ export async function uploadFileData(
  */
 export async function getFileMetadata(fileId: string): Promise<{
   fileSize: number;
-  fileSalt: Uint8Array;
+  fileSalt: number[];
   fileIv: number[];
   burnAfterRead: boolean;
   downloadCount: number;
@@ -125,8 +125,8 @@ export async function getFileMetadata(fileId: string): Promise<{
     const data = await response.json();
     return {
       fileSize: data.fileSize,
-      fileSalt: new Uint8Array(data.fileSalt),
-      fileIv: data.fileIv,
+      fileSalt: data.fileSalt, // Already an array from the API
+      fileIv: data.fileIv, // Already an array from the API
       burnAfterRead: data.burnAfterRead,
       downloadCount: data.downloadCount
     };

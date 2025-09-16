@@ -20,7 +20,7 @@ export async function GET(
     // Query the shared_files table
     const { data: fileRecord, error } = await supabaseAdmin
       .from('shared_files')
-      .select('s3_key, expires_at, burn_after_read, download_count')
+      .select('file_name, expires_at, burn_after_read, download_count')
       .eq('id', fileId)
       .single()
 
@@ -39,7 +39,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      fileName: fileRecord.s3_key
+      fileName: fileRecord.file_name
     })
 
   } catch (error) {

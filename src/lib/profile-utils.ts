@@ -1,14 +1,4 @@
-import { supabase } from './supabase';
-
-export interface UserProfile {
-  id: string;
-  user_id: string;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { supabase, UserProfile } from './supabase';
 
 export async function getUserProfile(): Promise<UserProfile | null> {
   try {

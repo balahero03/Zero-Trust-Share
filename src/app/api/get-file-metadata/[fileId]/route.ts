@@ -39,10 +39,11 @@ export async function GET(
     }
 
     // Return only non-sensitive metadata
+    // Parse JSON strings back to arrays
     return NextResponse.json({
       fileSize: fileRecord.file_size,
-      fileSalt: fileRecord.file_salt,
-      fileIv: fileRecord.file_iv,
+      fileSalt: JSON.parse(fileRecord.file_salt),
+      fileIv: JSON.parse(fileRecord.file_iv),
       burnAfterRead: fileRecord.burn_after_read,
       downloadCount: fileRecord.download_count
     })

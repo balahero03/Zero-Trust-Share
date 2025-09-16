@@ -25,7 +25,15 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [burnAfterRead, setBurnAfterRead] = useState(false);
   const [expiryHours, setExpiryHours] = useState(24);
+  const [password, setPassword] = useState('');
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = useCallback((file: File) => {
+    setSelectedFile(file);
+    setShowPasswordInput(true);
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -54,21 +62,26 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
     }
   }, [handleFileSelect]);
 
-  const handleFileSelect = useCallback(async (file: File) => {
+  const handlePasswordSubmit = useCallback(async () => {
+    if (!selectedFile || !password.trim()) return;
+    
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
       // Step 1: Encrypt the file
       setUploadProgress(10);
-      const { encryptedData, iv, fileSalt } = await encryptFile(file, 'default-passcode');
+      const { encryptedData, iv, fileSalt } = await encryptFile(selectedFile, password);
       
       // Step 2: Prepare upload (get upload URL and create database record)
       setUploadProgress(30);
       const uploadResponse = await prepareFileUpload(
-        file.name, // This should be encrypted filename, but for now using original
+        selectedFile.name, // This should be encrypted filename, but for now using original
         encryptedData.byteLength,
+        fileSalt,
         iv,
+        'demo-master-key-hash', // Placeholder - in real app this would be derived
+        'demo-metadata-iv', // Placeholder - in real app this would be derived
         burnAfterRead,
         expiryHours
       );
@@ -79,18 +92,18 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
 
       setUploadProgress(90);
 
-      // Step 4: Generate share URL with file salt
-      const shareUrl = `${window.location.origin}/file/${uploadResponse.fileId}#salt=${encodeURIComponent(uint8ArrayToBase64(fileSalt))}`;
+      // Step 4: Generate share URL for recipients
+      const shareUrl = `${window.location.origin}/share/${uploadResponse.fileId}`;
       
       setUploadProgress(100);
 
       // Notify parent component
       onFileUploaded({
         id: uploadResponse.fileId,
-        name: file.name,
-        size: file.size,
+        name: selectedFile.name,
+        size: selectedFile.size,
         shareUrl,
-        password: 'default-passcode' // Using the passcode for compatibility
+        password: password // Using the actual password
       });
 
     } catch (error) {
@@ -99,8 +112,11 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setShowPasswordInput(false);
+      setPassword('');
+      setSelectedFile(null);
     }
-  }, [burnAfterRead, expiryHours, onFileUploaded]);
+  }, [selectedFile, password, burnAfterRead, expiryHours, onFileUploaded]);
 
   const openFileDialog = useCallback(() => {
     fileInputRef.current?.click();
@@ -120,9 +136,9 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <h4 className="text-sm font-medium text-electric-blue mb-1">Automatic Encryption</h4>
+            <h4 className="text-sm font-medium text-electric-blue mb-1">Password-Protected Encryption</h4>
             <p className="text-sm text-text-secondary">
-              Your file will be automatically encrypted with a unique key. The encryption key will be included in the shareable link.
+              Your file will be encrypted with a password you choose. Recipients will need this password to download and decrypt the file.
             </p>
           </div>
         </div>
@@ -220,6 +236,58 @@ export function FileUpload({ onFileUploaded }: FileUploadProps) {
           </div>
         )}
       </div>
+
+      {/* Password Input */}
+      {showPasswordInput && selectedFile && (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+          <div className="space-y-4">
+            <div className="text-center">
+              <h4 className="text-lg font-semibold text-white mb-2">Set Password for File</h4>
+              <p className="text-gray-300 text-sm">
+                Choose a password to protect your file. Recipients will need this password to download.
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="filePassword" className="block text-sm font-medium text-white mb-2">
+                  File Password
+                </label>
+                <input
+                  id="filePassword"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter a secure password"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
+                  onKeyPress={(e) => e.key === 'Enter' && password.trim() && handlePasswordSubmit()}
+                  autoFocus
+                />
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={handlePasswordSubmit}
+                  disabled={!password.trim() || isUploading}
+                  className="flex-1 py-3 px-4 bg-electric-blue hover:bg-electric-blue-dark disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-300"
+                >
+                  {isUploading ? 'Uploading...' : 'Upload & Encrypt'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPasswordInput(false);
+                    setSelectedFile(null);
+                    setPassword('');
+                  }}
+                  className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Security Notice */}
       <div className="bg-electric-blue/10 border border-electric-blue/20 rounded-lg p-4">

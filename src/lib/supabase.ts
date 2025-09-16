@@ -48,6 +48,8 @@ export interface SharedFile {
   file_size: number
   file_salt: string
   file_iv: string
+  master_key_hash: string
+  metadata_iv: string
   expires_at: string | null
   burn_after_read: boolean
   download_count: number
@@ -65,6 +67,42 @@ export interface EmailShare {
   status: 'sent' | 'opened' | 'failed'
 }
 
+export interface SMSVerification {
+  id: string
+  file_id: string
+  recipient_phone: string
+  recipient_id: string | null
+  passcode: string
+  expires_at: string
+  verified_at: string | null
+  attempts: number
+  max_attempts: number
+  created_at: string
+}
+
+export interface UserProfile {
+  id: string
+  user_id: string
+  full_name: string
+  email: string
+  phone: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Invitation {
+  id: string
+  file_id: string
+  sender_id: string
+  recipient_email: string
+  invitation_token: string
+  expires_at: string
+  accepted_at: string | null
+  recipient_id: string | null
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled'
+  created_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -77,6 +115,21 @@ export interface Database {
         Row: EmailShare
         Insert: Omit<EmailShare, 'id' | 'sent_at' | 'opened_at'>
         Update: Partial<Omit<EmailShare, 'id' | 'sent_at'>>
+      }
+      sms_verification: {
+        Row: SMSVerification
+        Insert: Omit<SMSVerification, 'id' | 'created_at' | 'verified_at' | 'attempts'>
+        Update: Partial<Omit<SMSVerification, 'id' | 'created_at'>>
+      }
+      user_profiles: {
+        Row: UserProfile
+        Insert: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>
+      }
+      invitations: {
+        Row: Invitation
+        Insert: Omit<Invitation, 'id' | 'created_at' | 'accepted_at'>
+        Update: Partial<Omit<Invitation, 'id' | 'created_at'>>
       }
     }
   }

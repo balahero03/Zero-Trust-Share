@@ -57,15 +57,16 @@ export async function POST(request: NextRequest) {
     const emailValidationResults = []
     for (const email of validEmails) {
       const { data: userData, error: userError } = await supabaseAdmin
-        .from('auth.users')
-        .select('id, email')
+        .from('user_profiles')
+        .select('user_id, phone')
         .eq('email', email)
         .single()
 
       emailValidationResults.push({
         email,
         isRegistered: !userError && !!userData,
-        userId: userData?.id || null
+        userId: userData?.user_id || null,
+        phone: userData?.phone || null
       })
     }
 
