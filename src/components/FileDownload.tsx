@@ -81,6 +81,7 @@ export function FileDownload({ onBack, initialFileId, initialKey }: FileDownload
         metadata.fileSalt,
         new Uint8Array(metadata.fileIv)
       );
+      
 
       // Step 4: Download file
       setDownloadProgress(90);

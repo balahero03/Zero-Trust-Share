@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getUserFiles, revokeFile } from '@/lib/storage';
-import { deriveMasterKey } from '@/lib/encryption';
+import { deriveMasterKey, decryptMetadata } from '@/lib/encryption';
 import { initializeMasterKey, getMasterKeySalt } from '@/lib/auth-utils';
 
 interface SharedFile {
@@ -13,6 +13,8 @@ interface SharedFile {
   burn_after_read: boolean;
   download_count: number;
   created_at: string;
+  metadata_iv: string;
+  master_key_hash: string;
   decryptedName?: string;
 }
 
@@ -43,16 +45,20 @@ export function DashboardView({}: DashboardViewProps) {
         
         // For demo purposes, we'll use a placeholder password
         // In production, you'd store the master key more securely
-        await deriveMasterKey('demo-password', masterKeySalt);
+        const { masterKey } = await deriveMasterKey('demo-password', masterKeySalt);
         
         const decryptedFiles = await Promise.all(
           files.map(async (file) => {
             try {
-              // In a real implementation, you'd decrypt the filename here
-              // For now, we'll use a placeholder
+              // Decrypt the filename using the master key and metadata IV
+              const decryptedName = await decryptMetadata(
+                file.encrypted_file_name,
+                masterKey,
+                file.metadata_iv
+              );
               return {
                 ...file,
-                decryptedName: `File-${file.id.slice(0, 8)}`
+                decryptedName
               };
             } catch (error) {
               console.error('Failed to decrypt filename:', error);

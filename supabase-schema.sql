@@ -10,6 +10,8 @@ CREATE TABLE public.shared_files (
     file_size bigint NOT NULL,
     file_salt text NOT NULL,
     file_iv text NOT NULL,
+    master_key_hash text NOT NULL,
+    metadata_iv text NOT NULL,
     expires_at timestamp with time zone,
     burn_after_read boolean DEFAULT false NOT NULL,
     download_count integer DEFAULT 0 NOT NULL,

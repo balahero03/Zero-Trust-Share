@@ -28,6 +28,8 @@ export async function prepareFileUpload(
   fileSize: number,
   fileSalt: Uint8Array,
   fileIv: Uint8Array,
+  masterKeyHash: string,
+  metadataIv: string,
   burnAfterRead: boolean = false,
   expiryHours: number = 24
 ): Promise<UploadResponse> {
@@ -50,6 +52,8 @@ export async function prepareFileUpload(
         fileSize,
         fileSalt: Array.from(fileSalt),
         fileIv: Array.from(fileIv),
+        masterKeyHash,
+        metadataIv,
         burnAfterRead,
         expiryHours
       })
