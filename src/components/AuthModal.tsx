@@ -200,7 +200,7 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
           {mode === 'signup' && (
             <div>
               <label htmlFor="mobileNumber" className="block text-sm font-medium text-text-primary mb-2">
-                Mobile Number
+                Mobile Number <span className="text-text-secondary text-xs">(optional)</span>
               </label>
               <input
                 type="tel"
