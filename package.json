@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate-users": "node migrate-existing-users.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

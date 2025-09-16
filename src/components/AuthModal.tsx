@@ -53,15 +53,15 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
       }
 
       if (mode === 'signup') {
-        // Sign up with Supabase using built-in phone field
+        // Sign up with Supabase and store profile data in metadata for trigger
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          phone: mobileNumber.trim() || undefined, // Use the built-in phone field
           options: {
             emailRedirectTo: `${window.location.origin}/auth/confirm`,
             data: {
-              full_name: fullName.trim()
+              full_name: fullName.trim(),
+              phone: mobileNumber.trim() || null
             }
           }
         });
