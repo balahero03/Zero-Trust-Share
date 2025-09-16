@@ -19,6 +19,8 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -36,8 +38,14 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
         throw new Error('Please fill in all fields');
       }
 
-      if (mode === 'signup' && password !== confirmPassword) {
-        throw new Error('Passwords do not match');
+      if (mode === 'signup') {
+        if (!fullName.trim()) {
+          throw new Error('Please enter your full name');
+        }
+        
+        if (password !== confirmPassword) {
+          throw new Error('Passwords do not match');
+        }
       }
 
       if (password.length < 6) {
@@ -45,12 +53,16 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
       }
 
       if (mode === 'signup') {
-        // Sign up with Supabase
+        // Sign up with Supabase using built-in phone field
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          phone: mobileNumber.trim() || undefined, // Use the built-in phone field
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/confirm`
+            emailRedirectTo: `${window.location.origin}/auth/confirm`,
+            data: {
+              full_name: fullName.trim()
+            }
           }
         });
 
@@ -150,6 +162,24 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name (Signup only) */}
+          {mode === 'signup' && (
+            <div>
+              <label htmlFor="fullName" className="block text-sm font-medium text-text-primary mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
+          )}
+
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-2">
@@ -165,6 +195,23 @@ export function AuthModal({ onClose, onAuthSuccess }: AuthModalProps) {
               required
             />
           </div>
+
+          {/* Mobile Number (Signup only - Optional) */}
+          {mode === 'signup' && (
+            <div>
+              <label htmlFor="mobileNumber" className="block text-sm font-medium text-text-primary mb-2">
+                Mobile Number <span className="text-text-secondary text-xs">(optional)</span>
+              </label>
+              <input
+                type="tel"
+                id="mobileNumber"
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
+                placeholder="Enter your mobile number"
+              />
+            </div>
+          )}
 
           {/* Password */}
           <div>

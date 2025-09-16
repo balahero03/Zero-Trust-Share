@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // Get user's files
     const { data: files, error } = await supabaseAdmin
       .from('shared_files')
-      .select('id, encrypted_file_name, file_size, expires_at, burn_after_read, download_count, created_at')
+      .select('id, encrypted_file_name, file_size, expires_at, burn_after_read, download_count, created_at, metadata_iv, master_key_hash')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: false })
 

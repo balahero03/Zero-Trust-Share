@@ -127,9 +127,9 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
 
       // For demo purposes, we'll use a placeholder password
       // In production, you'd store the master key more securely
-      const { masterKey } = await deriveMasterKey('demo-password', masterKeySalt);
+      const { masterKey, masterKeyHash } = await deriveMasterKey('demo-password', masterKeySalt);
       
-      const { encryptedData: encryptedFileName } = await encryptMetadata(selectedFile.name, masterKey);
+      const { encryptedData: encryptedFileName, ivBase64: metadataIv } = await encryptMetadata(selectedFile.name, masterKey);
 
       // Step 3: Prepare upload and upload to Supabase Storage
       setProcessingSteps(prev => 
@@ -147,6 +147,8 @@ export function FileUploadProcess({ onAuthSuccess }: FileUploadProcessProps) {
         selectedFile.size,
         fileSalt,
         iv,
+        masterKeyHash,
+        metadataIv,
         burnAfterRead,
         expiryHours
       );

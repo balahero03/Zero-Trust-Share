@@ -10,7 +10,8 @@ export default function AuthPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    name: ''
+    name: '',
+    mobileNumber: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -103,21 +104,38 @@ export default function AuthPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {mode === 'signup' && (
-              <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-medium text-text-primary">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required={mode === 'signup'}
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
-                  placeholder="Enter your full name"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-text-primary">
+                    Full Name
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required={mode === 'signup'}
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="mobileNumber" className="block text-sm font-medium text-text-primary">
+                    Mobile Number
+                  </label>
+                  <input
+                    id="mobileNumber"
+                    name="mobileNumber"
+                    type="tel"
+                    value={formData.mobileNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-electric-blue focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your mobile number"
+                  />
+                </div>
+              </>
             )}
 
             <div className="space-y-2">

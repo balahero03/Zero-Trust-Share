@@ -30,11 +30,13 @@ export async function POST(request: NextRequest) {
       fileSize, 
       fileSalt, 
       fileIv,
+      masterKeyHash,
+      metadataIv,
       burnAfterRead = false, 
       expiryHours = 24 
     } = body
 
-    if (!encryptedFileName || !fileSize || !fileSalt) {
+    if (!encryptedFileName || !fileSize || !fileSalt || !fileIv || !masterKeyHash || !metadataIv) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -52,11 +54,13 @@ export async function POST(request: NextRequest) {
       .from('shared_files')
       .insert({
         owner_id: user.id,
-        s3_key: fileName, // Using s3_key field (will be renamed to file_name after DB update)
+        file_name: fileName,
         encrypted_file_name: encryptedFileName,
         file_size: fileSize,
         file_salt: fileSalt,
-        file_iv: fileIv || 'temp-iv', // Temporary fix
+        file_iv: fileIv,
+        master_key_hash: masterKeyHash,
+        metadata_iv: metadataIv,
         expires_at: expiresAt,
         burn_after_read: burnAfterRead,
         download_count: 0
